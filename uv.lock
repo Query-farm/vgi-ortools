@@ -815,7 +815,7 @@ requires-dist = [
     { name = "pydoclint", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "vgi-python", extras = ["http"], specifier = ">=0.8.8" },
+    { name = "vgi-python", extras = ["http"], specifier = ">=0.9.0" },
 ]
 provides-extras = ["dev"]
 
@@ -830,7 +830,7 @@ dev = [
 
 [[package]]
 name = "vgi-python"
-version = "0.8.11"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -840,9 +840,9 @@ dependencies = [
     { name = "typer" },
     { name = "vgi-rpc" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/14/a8f597a2e10dcf55c19135f8c09f6fbf25a119c41371b2220c67ba488236/vgi_python-0.8.11.tar.gz", hash = "sha256:5614baf4d6e7faf95792e597e673caf1d83e8eaa44277b974ed78a5439f43281", size = 3269172, upload-time = "2026-06-29T22:02:15.242Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/0b/8b3581beb685ba2e97acd3264ca8bbd3eb56c5961b1ebb46a00d1eaf9d2e/vgi_python-0.9.0.tar.gz", hash = "sha256:d488c446a905aaeba78e341897c7bcc5175a5e080c7b7d9b20a7a8795ba2019d", size = 3271638, upload-time = "2026-06-30T15:20:27.293Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/6c/5f8bf784bf1573b1c33cb31bf1d2f9079d0579cfe9bb3cf93cececf12257/vgi_python-0.8.11-py3-none-any.whl", hash = "sha256:d719430d108608c4b7d2ce6fed30bd70b345cbf755c5360e5121147d56b33207", size = 606694, upload-time = "2026-06-29T22:02:13.222Z" },
+    { url = "https://files.pythonhosted.org/packages/98/2e/f8d699e4325f97c32265554d3e2dc8562a4bb88584f3a5eb0ebc0ff2e839/vgi_python-0.9.0-py3-none-any.whl", hash = "sha256:e1ed4b78112ea7229e3f6a9c752bc736ef9427e4f6d8770b687f38153c92e95b", size = 609127, upload-time = "2026-06-30T15:20:24.991Z" },
 ]
 
 [package.optional-dependencies]
