@@ -58,7 +58,18 @@ _KNAPSACK_EXAMPLES = [
             "item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], "
             "capacities := [40]::BIGINT[]) ORDER BY item"
         ),
-    }
+    },
+    {
+        "description": (
+            "Two-dimensional knapsack: each item has a weight and a volume, packed under both a "
+            "weight budget (50) and a volume budget (5) at once -- one `weights` column per dimension."
+        ),
+        "sql": (
+            "SELECT item, chosen, status FROM ortools.solve_knapsack("
+            "item_values := [60,100,120]::BIGINT[], weights := [[10,2],[20,3],[30,4]]::BIGINT[][], "
+            "capacities := [50,5]::BIGINT[]) ORDER BY item"
+        ),
+    },
 ]
 _BINPACK_EXAMPLES = [
     {

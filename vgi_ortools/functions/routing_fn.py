@@ -46,7 +46,19 @@ _TSP_EXAMPLES = [
             "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], "
             "start := 0, time_limit_s := 3.0) ORDER BY seq"
         ),
-    }
+    },
+    {
+        "description": (
+            "Same problem from the sparse `[from, to, meters]` edge-list form (build it with "
+            "`array_agg([f, t, m])`) instead of a dense matrix -- here a complete 4-node graph."
+        ),
+        "sql": (
+            "SELECT seq, node, arrival FROM ortools.solve_tsp("
+            "distance := [[0,1,1],[0,2,4],[0,3,2],[1,0,1],[1,2,1],[1,3,5],"
+            "[2,0,4],[2,1,1],[2,3,1],[3,0,2],[3,1,5],[3,2,1]]::BIGINT[][], "
+            "start := 0, time_limit_s := 3.0) ORDER BY seq"
+        ),
+    },
 ]
 _VRP_EXAMPLES = [
     {
