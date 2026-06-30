@@ -1,0 +1,124 @@
+# name: test/sql/ortools.test
+# description: OR-Tools solvers over the vgi extension: assignment / TSP / VRP / CP-SAT / flow + the empty-vs-infeasible contract
+# group: [vgi_ortools]
+
+require-env VGI_ORTOOLS_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'ortools' AS opt (TYPE vgi, LOCATION '${VGI_ORTOOLS_WORKER}');
+
+# ---- solver_info reports the bundled solver + worker versions ----
+query I
+SELECT count(*) FROM opt.solver_info() WHERE component IN ('ortools', 'worker', 'dialect');
+----
+3
+
+# ---- 3x3 linear assignment: unique optimum (0->1, 1->0, 2->2), total cost 201 ----
+query III
+SELECT worker, task, cost FROM opt.solve_assignment(
+  cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][],
+  maximize := false) ORDER BY worker;
+----
+0	1	76
+1	0	35
+2	2	90
+
+query I
+SELECT sum(cost) FROM opt.solve_assignment(
+  cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][],
+  maximize := false);
+----
+201
+
+# ---- assignment with no perfect matching returns ONE row, status INFEASIBLE (not empty) ----
+query I
+SELECT count(*) FROM opt.solve_assignment(cost := [[0,0,1],[0,1,1]]::BIGINT[][], maximize := false);
+----
+1
+
+query T
+SELECT status FROM opt.solve_assignment(cost := [[0,0,1],[0,1,1]]::BIGINT[][], maximize := false);
+----
+INFEASIBLE
+
+# ---- 5-node TSP: shortest tour length 17 ----
+query I
+SELECT max(arrival) FROM opt.solve_tsp(
+  distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][],
+  start := 0, time_limit_s := 3.0);
+----
+17
+
+query T
+SELECT DISTINCT status FROM opt.solve_tsp(
+  distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0);
+----
+OPTIMAL
+
+# ---- capacitated VRP: status OPTIMAL, optimal total distance 6 (max arrival on the longer route) ----
+query T
+SELECT DISTINCT status FROM opt.solve_vrp(
+  distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][],
+  demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, time_limit_s := 3.0);
+----
+OPTIMAL
+
+# the per-route load never exceeds the vehicle capacity
+query I
+SELECT count(*) FROM opt.solve_vrp(
+  distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][],
+  demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, time_limit_s := 3.0)
+WHERE load_0 > 2;
+----
+0
+
+# ---- CP-SAT job-shop makespan via the JSON dialect: optimum 10 ----
+query R
+SELECT DISTINCT objective FROM opt.solve_cpsat(model := '{"version":1,"variables":[{"kind":"int","name":"s0","lb":0,"ub":20},{"kind":"int","name":"e0","lb":0,"ub":20},{"kind":"int","name":"s1","lb":0,"ub":20},{"kind":"int","name":"e1","lb":0,"ub":20},{"kind":"int","name":"s2","lb":0,"ub":20},{"kind":"int","name":"e2","lb":0,"ub":20},{"kind":"interval","name":"i0","start":{"var":"s0"},"size":{"const":3},"end":{"var":"e0"}},{"kind":"interval","name":"i1","start":{"var":"s1"},"size":{"const":5},"end":{"var":"e1"}},{"kind":"interval","name":"i2","start":{"var":"s2"},"size":{"const":2},"end":{"var":"e2"}},{"kind":"int","name":"makespan","lb":0,"ub":20}],"constraints":[{"type":"no_overlap","intervals":["i0","i1","i2"]},{"type":"max_equality","target":{"var":"makespan"},"exprs":[{"var":"e0"},{"var":"e1"},{"var":"e2"}]}],"objective":{"sense":"minimize","terms":[{"coef":1,"var":"makespan"}]}}', time_limit_s := 5.0);
+----
+10
+
+# ---- CP-SAT infeasible model returns ONE row, status INFEASIBLE, NULL var ----
+query I
+SELECT count(*) FROM opt.solve_cpsat(model := '{"version":1,"variables":[{"kind":"int","name":"x","lb":0,"ub":5}],"constraints":[{"type":"linear","expr":{"var":"x"},"op":">=","rhs":10}]}');
+----
+1
+
+query T
+SELECT status FROM opt.solve_cpsat(model := '{"version":1,"variables":[{"kind":"int","name":"x","lb":0,"ub":5}],"constraints":[{"type":"linear","expr":{"var":"x"},"op":">=","rhs":10}]}');
+----
+INFEASIBLE
+
+# ---- CP-SAT model with a fractional bound is rejected with a clear error (never silent rounding) ----
+statement error
+SELECT * FROM opt.solve_cpsat(model := '{"version":1,"variables":[{"kind":"int","name":"x","lb":0,"ub":1.5}]}');
+----
+not an integer
+
+# ---- min-cost flow: canonical example, optimal total cost 150 ----
+query I
+SELECT sum(cost) FROM opt.min_cost_flow(
+  arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[1,4,10,6],[2,3,15,1],[2,4,4,3],[3,4,20,2],[4,2,5,3]]::BIGINT[][],
+  supplies := [[0,20],[3,-5],[4,-15]]::BIGINT[][]);
+----
+150
+
+# ---- scalar max_flow_value: max flow from 0 to 3 is 30 ----
+query I
+SELECT opt.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3);
+----
+30
+
+# ---- knapsack: pick items 0,2,3 for optimal value 80 ----
+query I
+SELECT count(*) FROM opt.solve_knapsack(
+  item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][],
+  capacities := [40]::BIGINT[]) WHERE chosen;
+----
+3
+
+statement ok
+DETACH opt;

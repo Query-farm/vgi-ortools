@@ -1,0 +1,122 @@
+[project]
+name = "vgi-ortools"
+version = "0.1.0"
+description = "A VGI (Vector Gateway Interface) worker exposing Google OR-Tools (CP-SAT, routing/VRP, assignment, scheduling, flow, packing) as DuckDB/SQL functions"
+readme = "README.md"
+license = "LicenseRef-Query-Farm-Source-Available"
+license-files = ["LICENSE"]
+authors = [{ name = "Rusty Conover", email = "rusty@query.farm" }]
+maintainers = [{ name = "Query Farm LLC", email = "hello@query.farm" }]
+keywords = ["vgi", "duckdb", "arrow", "ortools", "optimization", "cp-sat", "vrp", "constraint-programming", "sql"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.13"
+dependencies = [
+    "vgi-python[http]>=0.8.8",
+    # OR-Tools: the prebuilt CP-SAT / GLOP / PDLP / routing engines (~30 MB wheel,
+    # the largest single dep in the fleet). Pinned to one minor so the container
+    # size budget and behaviour are stable; pull no extras.
+    "ortools>=9.15,<9.16",
+]
+
+# Console scripts. `vgi-ortools` runs the stdio transport (DuckDB spawns it);
+# `vgi-ortools-http` runs the HTTP server.
+[project.scripts]
+vgi-ortools = "vgi_ortools.worker:main"
+vgi-ortools-http = "vgi_ortools.worker:main_http"
+
+[project.urls]
+Homepage = "https://query.farm"
+Repository = "https://github.com/Query-farm/vgi-ortools"
+Issues = "https://github.com/Query-farm/vgi-ortools/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["vgi_ortools"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "vgi_ortools/",
+    "ortools_worker.py",
+    "serve.py",
+    "conftest.py",
+    "tests/",
+    "test/",
+    "README.md",
+    "CLAUDE.md",
+    "LICENSE",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pyarrow",
+    "ruff",
+    "mypy",
+    "pydoclint",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pyarrow",
+    "ruff",
+    "mypy",
+    "pydoclint",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "D"]
+ignore = [
+    "B008",  # function call in argument default (Arg(...) defaults are intentional)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+"tests/*" = ["E402"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pydoclint]
+style = "google"
+arg_type_hints_in_docstring = false
+check_return_types = false
+check_yield_types = false
+check_class_attributes = true
+skip_checking_raises = true
+allow_init_docstring = true
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# The ortools wheel ships partial / untyped stubs for the C++-backed modules.
+module = ["ortools.*"]
+ignore_missing_imports = true

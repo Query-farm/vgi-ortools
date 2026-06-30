@@ -1,0 +1,23 @@
+# vgi-lint-check configuration for vgi-ortools.
+#
+# This worker is pure offline compute: every function solves a self-contained
+# problem passed entirely as scalar LIST / JSON arguments, with no backend, no
+# secret, and no network. The executable examples are therefore self-contained
+# (inline LIST literals and inline JSON models) and run against the attached
+# worker, so execution stays ENABLED -- the full metadata + execution gate runs.
+#
+# The gate fails at `info` (the strictest level), so every function must carry
+# title + docs + keywords + result-columns + runnable executable examples, and
+# the catalog must carry source_url + tags.
+[tool.vgi-lint-check]
+fail_on = "info"
+
+# VGI311 (parameterless table function -> expose as a table) is ignored for the
+# two introspection helpers: `last_solve_stats` is intentionally STATEFUL (it
+# returns the most recent solve's metrics, which change over time, so it cannot
+# be a static table), and `solver_info` is a tiny version probe that reads most
+# naturally as a function call. Both are idiomatic VGI table functions.
+ignore = ["VGI311"]
+
+[tool.vgi-lint-check.options]
+column_comment_min_ratio = 0.8
