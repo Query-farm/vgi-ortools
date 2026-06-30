@@ -3,7 +3,7 @@ name = "vgi-ortools"
 version = "0.1.0"
 description = "A VGI (Vector Gateway Interface) worker exposing Google OR-Tools (CP-SAT, routing/VRP, assignment, scheduling, flow, packing) as DuckDB/SQL functions"
 readme = "README.md"
-license = "LicenseRef-Query-Farm-Source-Available"
+license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Rusty Conover", email = "rusty@query.farm" }]
 maintainers = [{ name = "Query Farm LLC", email = "hello@query.farm" }]

@@ -55,7 +55,7 @@ _CATALOG_DESCRIPTION_MD = (
     "`CpModel`.\n\n"
     "Data residency: this worker makes **no outbound network calls** -- pure local CPU, no API keys, no "
     "rate limits, no data egress. Your routing problem (which encodes your customers and depots) never "
-    "leaves the box. OR-Tools is Apache-2.0; the worker is Query Farm Source-Available."
+    "leaves the box. OR-Tools is Apache-2.0; the worker is MIT."
 )
 
 _CATALOG_KEYWORDS = [
@@ -97,7 +97,7 @@ _CATALOG_TAGS = {
     "vgi.source_url": SOURCE_URL,
     "vgi.author": "Query.Farm",
     "vgi.copyright": "Copyright 2026 Query Farm LLC - https://query.farm",
-    "vgi.license": "LicenseRef-Query-Farm-Source-Available",
+    "vgi.license": "MIT",
     "vgi.support_contact": "https://github.com/Query-farm/vgi-ortools/issues",
     "vgi.support_policy_url": "https://github.com/Query-farm/vgi-ortools/blob/main/README.md",
     # Offline compute: no credentials, no resumable cursor.

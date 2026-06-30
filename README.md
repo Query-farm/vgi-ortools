@@ -277,9 +277,8 @@ scripts; DuckDB spawns the stdio one after `ATTACH 'vgi:ortools'`.
 | `pyarrow` | Apache-2.0 | SDK transport. |
 | vgi-python SDK | Query Farm | Worker framework. |
 
-No GPL / AGPL / commercial-data-license anywhere. **Worker license: Query Farm
-Source-Available** (see `LICENSE`). OR-Tools and the solvers bundled in the wheel
-are Apache-2.0 / permissive.
+No GPL / AGPL / commercial-data-license anywhere. **Worker license: MIT** (see
+`LICENSE`). OR-Tools and the solvers bundled in the wheel are Apache-2.0 / permissive.
 
 ## Pairs with
 

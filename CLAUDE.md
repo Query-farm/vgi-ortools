@@ -134,5 +134,5 @@ make test-sql            # haybarn sqllogictest E2E (needs the vgi community ext
 
 ## License
 
-Query Farm Source-Available (`LICENSE`); OR-Tools is Apache-2.0. The spec
-specifies Source-Available for this worker.
+MIT (`LICENSE`); OR-Tools is Apache-2.0. (The original spec text differed; the
+fleet convention is MIT — applied here.)
