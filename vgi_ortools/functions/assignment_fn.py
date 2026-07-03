@@ -64,7 +64,7 @@ class SolveAssignmentArgs:
             "cost",
             default=None,
             arrow_type=LIST_LIST_INT,
-            doc="Sparse [worker, task, cost] integer triples (array_agg([w, t, c])); a missing pair is disallowed.",
+            doc="Sparse [worker, task, cost] triples (array_agg([w, t, c])); a missing pair is a disallowed match.",
         ),
     ]
     maximize: Annotated[bool, Arg("maximize", default=False, doc="Maximize total cost instead of minimizing.")]
@@ -99,6 +99,7 @@ class SolveAssignment(TableFunctionGenerator[SolveAssignmentArgs]):
         ]
         tags = function_tags(
             title="Linear Assignment (Min-Cost Matching)",
+            category="Assignment",
             doc_llm=(
                 "## `solve_assignment`\n\n"
                 "Solve a **linear sum assignment**: match each worker to at most one task (and each "

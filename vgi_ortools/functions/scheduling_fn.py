@@ -78,7 +78,7 @@ class SolveJobshopArgs:
 
     tasks: Annotated[
         list[Any] | None,
-        Arg("tasks", default=None, arrow_type=LIST_LIST_INT, doc="[job, task, machine, duration] integer rows."),
+        Arg("tasks", default=None, arrow_type=LIST_LIST_INT, doc="[job, task, machine, duration] operation rows."),
     ]
     horizon: Annotated[int, Arg("horizon", default=0, doc="Scheduling horizon upper bound (0 = sum of durations).")]
     time_limit_s: Annotated[float, Arg("time_limit_s", default=30.0, doc="Wall-clock cap in seconds.")]
@@ -114,6 +114,7 @@ class SolveJobshop(TableFunctionGenerator[SolveJobshopArgs]):
         ]
         tags = function_tags(
             title="Job-Shop Scheduling (Min Makespan)",
+            category="Scheduling",
             doc_llm=(
                 "## `solve_jobshop`\n\n"
                 "Schedule the tasks of several **jobs** onto shared **machines** to minimize the "
@@ -198,7 +199,7 @@ class SolveRcpspArgs:
             "tasks",
             default=None,
             arrow_type=LIST_LIST_INT,
-            doc="[task, duration, r0_demand, r1_demand, ...] integer rows (one demand col per resource).",
+            doc="[task, duration, r0_demand, r1_demand, ...] rows (one demand column per resource).",
         ),
     ]
     precedences: Annotated[
@@ -242,6 +243,7 @@ class SolveRcpsp(TableFunctionGenerator[SolveRcpspArgs]):
         ]
         tags = function_tags(
             title="Resource-Constrained Project Scheduling",
+            category="Scheduling",
             doc_llm=(
                 "## `solve_rcpsp`\n\n"
                 "Solve a **resource-constrained project scheduling problem**: schedule tasks (each with "
@@ -256,10 +258,10 @@ class SolveRcpsp(TableFunctionGenerator[SolveRcpspArgs]):
                 "# solve_rcpsp\n\n"
                 "Resource-constrained project scheduling minimizing makespan.\n\n"
                 "```sql\n"
-                'SELECT task, start, "end", makespan FROM ortools.solve_rcpsp(\n'
-                "  tasks := (SELECT array_agg([t, dur, d0]) FROM project_tasks),\n"
-                "  precedences := (SELECT array_agg([p, s]) FROM deps),\n"
-                "  resources := [[0, 4]]::BIGINT[][]);\n"
+                'SELECT task, start, "end", makespan FROM ortools.solve_rcpsp('
+                "tasks := (SELECT array_agg([t, dur, d0]) FROM project_tasks), "
+                "precedences := (SELECT array_agg([p, s]) FROM deps), "
+                "resources := [[0, 4]]::BIGINT[][]);\n"
                 "```\n"
             ),
             keywords=keywords,

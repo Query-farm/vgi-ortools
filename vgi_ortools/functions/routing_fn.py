@@ -44,7 +44,7 @@ _TSP_EXAMPLES = [
         "sql": (
             "SELECT seq, node, arrival FROM ortools.solve_tsp("
             "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], "
-            "start := 0, time_limit_s := 3.0) ORDER BY seq"
+            "start := 0, time_limit_s := 1.0) ORDER BY seq"
         ),
     },
     {
@@ -56,7 +56,7 @@ _TSP_EXAMPLES = [
             "SELECT seq, node, arrival FROM ortools.solve_tsp("
             "distance := [[0,1,1],[0,2,4],[0,3,2],[1,0,1],[1,2,1],[1,3,5],"
             "[2,0,4],[2,1,1],[2,3,1],[3,0,2],[3,1,5],[3,2,1]]::BIGINT[][], "
-            "start := 0, time_limit_s := 3.0) ORDER BY seq"
+            "start := 0, time_limit_s := 1.0) ORDER BY seq"
         ),
     },
 ]
@@ -68,7 +68,7 @@ _VRP_EXAMPLES = [
             "distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],"
             "[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], "
             "demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, "
-            "time_limit_s := 3.0) ORDER BY route_id, seq"
+            "time_limit_s := 1.0) ORDER BY route_id, seq"
         ),
     }
 ]
@@ -129,6 +129,7 @@ class SolveTsp(TableFunctionGenerator[SolveTspArgs]):
         ]
         tags = function_tags(
             title="Travelling Salesperson (Shortest Tour)",
+            category="Routing",
             doc_llm=(
                 "## `solve_tsp`\n\n"
                 "Find the **shortest single-vehicle tour** that visits every node once and returns to "
@@ -339,6 +340,7 @@ class SolveVrp(TableFunctionGenerator[SolveVrpArgs]):
         ]
         tags = function_tags(
             title="Vehicle Routing (Capacitated / Time-Windowed)",
+            category="Routing",
             doc_llm=(
                 "## `solve_vrp`\n\n"
                 "Route a **fleet of vehicles** from a depot to serve a set of stops at **minimum total "
@@ -365,13 +367,12 @@ class SolveVrp(TableFunctionGenerator[SolveVrpArgs]):
                 "# solve_vrp\n\n"
                 "Capacitated, time-windowed vehicle routing.\n\n"
                 "```sql\n"
-                "SELECT route_id, seq, node, arrival, load_0 AS load\n"
-                "FROM ortools.solve_vrp(\n"
-                "  distance := (SELECT array_agg([f, t, m]) FROM dist_edges),\n"
-                "  demand := (SELECT array_agg([node, units]) FROM stop_demand),\n"
-                "  num_vehicles := 4, vehicle_capacity := 15, depot := 0,\n"
-                "  first_solution_strategy := 'PATH_CHEAPEST_ARC',\n"
-                "  local_search_metaheuristic := 'GUIDED_LOCAL_SEARCH', time_limit_s := 10.0)\n"
+                "SELECT route_id, seq, node, arrival, load_0 AS load FROM ortools.solve_vrp("
+                "distance := (SELECT array_agg([f, t, m]) FROM dist_edges), "
+                "demand := (SELECT array_agg([node, units]) FROM stop_demand), "
+                "num_vehicles := 4, vehicle_capacity := 15, depot := 0, "
+                "first_solution_strategy := 'PATH_CHEAPEST_ARC', "
+                "local_search_metaheuristic := 'GUIDED_LOCAL_SEARCH', time_limit_s := 10.0) "
                 "ORDER BY route_id, seq;\n"
                 "```\n"
             ),

@@ -64,6 +64,7 @@ class SolverInfo(TableFunctionGenerator[NoArgs]):
         keywords = ["solver info", "version", "ortools version", "diagnostics", "introspection", "cp-sat"]
         tags = function_tags(
             title="Solver / Worker Versions",
+            category="Introspection",
             doc_llm=(
                 "## `solver_info`\n\n"
                 "Return the versions of the bundled solver and the worker as `(component, version)` "
@@ -137,6 +138,7 @@ class LastSolveStats(TableFunctionGenerator[NoArgs]):
         keywords = ["last solve", "solve stats", "diagnostics", "wall time", "num branches", "introspection"]
         tags = function_tags(
             title="Last Solve Statistics",
+            category="Introspection",
             doc_llm=(
                 "## `last_solve_stats`\n\n"
                 "Return the statistics of the **most recent solve** handled by this worker process as "

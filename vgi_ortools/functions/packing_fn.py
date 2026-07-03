@@ -133,6 +133,7 @@ class SolveKnapsack(TableFunctionGenerator[SolveKnapsackArgs]):
         ]
         tags = function_tags(
             title="Knapsack (Value Maximization)",
+            category="Packing",
             doc_llm=(
                 "## `solve_knapsack`\n\n"
                 "Choose a subset of items to **maximize total value** subject to one or more **capacity "
@@ -145,10 +146,10 @@ class SolveKnapsack(TableFunctionGenerator[SolveKnapsackArgs]):
                 "# solve_knapsack\n\n"
                 "Multi-dimensional 0/1 knapsack maximizing value.\n\n"
                 "```sql\n"
-                "SELECT item, chosen FROM ortools.solve_knapsack(\n"
-                "  item_values := (SELECT array_agg(value) FROM items),\n"
-                "  weights := (SELECT array_agg([weight]) FROM items),\n"
-                "  capacities := [100]::BIGINT[]);\n"
+                "SELECT item, chosen FROM ortools.solve_knapsack("
+                "item_values := (SELECT array_agg(value) FROM items), "
+                "weights := (SELECT array_agg([weight]) FROM items), "
+                "capacities := [100]::BIGINT[]);\n"
                 "```\n"
             ),
             keywords=keywords,
@@ -229,6 +230,7 @@ class SolveBinPacking(TableFunctionGenerator[SolveBinPackingArgs]):
         ]
         tags = function_tags(
             title="Bin Packing (Fewest Bins)",
+            category="Packing",
             doc_llm=(
                 "## `solve_bin_packing`\n\n"
                 "Pack items into the **fewest identical fixed-capacity bins** (1-D bin packing as a "
@@ -296,11 +298,12 @@ class SolveBinPackingBins(TableFunctionGenerator[SolveBinPackingArgs]):
         keywords = ["bin packing", "rollup", "open bins", "bin utilization", "packing", "or-tools", "cp-sat"]
         tags = function_tags(
             title="Bin Packing (Per-Bin Rollup)",
+            category="Packing",
             doc_llm=(
                 "## `solve_bin_packing_bins`\n\n"
-                "The **per-bin rollup** of a 1-D bin-packing solution: one row per open bin with `used` "
-                "(the number of items packed into it). Same inputs as `solve_bin_packing` (`sizes`, "
-                "`bin_capacity`)."
+                "The **per-bin rollup** of a 1-D bin-packing solution: one row per open bin reporting "
+                "`used`, the number of items packed into it. It accepts the same `sizes` and "
+                "`bin_capacity` inputs as `solve_bin_packing`."
             ),
             doc_md=(
                 "# solve_bin_packing_bins\n\n"

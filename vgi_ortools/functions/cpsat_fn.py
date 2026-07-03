@@ -141,6 +141,7 @@ class SolveCpsat(TableFunctionGenerator[SolveCpsatArgs]):
         ]
         tags = function_tags(
             title="CP-SAT Constraint Solver (JSON Model)",
+            category="Constraint Programming",
             doc_llm=(
                 "## `solve_cpsat`\n\n"
                 "Solve an **arbitrary CP-SAT constraint-programming model** handed in as a **versioned "

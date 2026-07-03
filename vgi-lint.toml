@@ -17,7 +17,15 @@ fail_on = "info"
 # returns the most recent solve's metrics, which change over time, so it cannot
 # be a static table), and `solver_info` is a tiny version probe that reads most
 # naturally as a function call. Both are idiomatic VGI table functions.
-ignore = ["VGI311"]
+# VGI316 (single multi-dimensional-array argument -> take a table/relation input)
+# does not apply to this worker's design: a VGI table function reserves its single
+# subquery slot, so every solver receives its whole problem as scalar LIST / matrix
+# arguments (documented in CLAUDE.md). The functions VGI316 flags are the
+# single-matrix solvers; converting them to table-input functions would be
+# inconsistent with the multi-matrix solvers (min_cost_flow, solve_vrp, ...) that
+# genuinely cannot be so converted, and would break the offline scalar-argument
+# contract the whole surface is built on.
+ignore = ["VGI311", "VGI316"]
 
 [tool.vgi-lint-check.options]
 column_comment_min_ratio = 0.8

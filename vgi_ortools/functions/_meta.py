@@ -23,6 +23,7 @@ LIST_STR = pa.list_(pa.string())
 def function_tags(
     *,
     title: str,
+    category: str,
     doc_llm: str,
     doc_md: str,
     keywords: list[str],
@@ -40,6 +41,8 @@ def function_tags(
 
     Args:
         title: Human display title (must differ from the machine name).
+        category: The ``vgi.category`` this function belongs to; must name one of
+            the schema's ``vgi.categories`` registry entries (VGI411).
         doc_llm: Agent-facing Markdown narrative (VGI112).
         doc_md: Human-facing Markdown narrative (VGI113).
         keywords: Synonym keywords (VGI126/138).
@@ -54,6 +57,7 @@ def function_tags(
     """
     return {
         "vgi.title": title,
+        "vgi.category": category,
         "vgi.doc_llm": doc_llm,
         "vgi.doc_md": f"{doc_md}\n\n**Reference:** [OR-Tools documentation]({source_url})",
         "vgi.keywords": json.dumps(keywords),

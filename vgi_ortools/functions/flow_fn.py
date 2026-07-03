@@ -74,7 +74,7 @@ class MinCostFlowArgs:
 
     arcs: Annotated[
         list[Any] | None,
-        Arg("arcs", default=None, arrow_type=LIST_LIST_INT, doc="[from, to, capacity, unit_cost] integer arcs."),
+        Arg("arcs", default=None, arrow_type=LIST_LIST_INT, doc="[from, to, capacity, unit_cost] arcs of the network."),
     ]
     supplies: Annotated[
         list[Any] | None,
@@ -116,6 +116,7 @@ class MinCostFlow(TableFunctionGenerator[MinCostFlowArgs]):
         ]
         tags = function_tags(
             title="Minimum-Cost Flow",
+            category="Network Flow",
             doc_llm=(
                 "## `min_cost_flow`\n\n"
                 "Route flow from supply nodes to demand nodes over a **capacitated, costed network** so "
@@ -130,9 +131,9 @@ class MinCostFlow(TableFunctionGenerator[MinCostFlowArgs]):
                 "# min_cost_flow\n\n"
                 "Minimum-cost flow over a capacitated, costed network.\n\n"
                 "```sql\n"
-                'SELECT "from", "to", flow, cost FROM ortools.min_cost_flow(\n'
-                "  arcs := (SELECT array_agg([f, t, cap, c]) FROM edges),\n"
-                "  supplies := (SELECT array_agg([node, s]) FROM nodes));\n"
+                'SELECT "from", "to", flow, cost FROM ortools.min_cost_flow('
+                "arcs := (SELECT array_agg([f, t, cap, c]) FROM edges), "
+                "supplies := (SELECT array_agg([node, s]) FROM nodes));\n"
                 "```\n\n"
                 "Supplies must sum to zero. Returns one row per arc with positive flow."
             ),
@@ -185,7 +186,7 @@ class MaxFlowArgs:
 
     arcs: Annotated[
         list[Any] | None,
-        Arg("arcs", default=None, arrow_type=LIST_LIST_INT, doc="[from, to, capacity] integer arcs."),
+        Arg("arcs", default=None, arrow_type=LIST_LIST_INT, doc="[from, to, capacity] arcs of the network."),
     ]
     source: Annotated[int, Arg("source", default=0, doc="Source node id.")]
     sink: Annotated[int, Arg("sink", default=0, doc="Sink node id.")]
@@ -220,6 +221,7 @@ class MaxFlow(TableFunctionGenerator[MaxFlowArgs]):
         ]
         tags = function_tags(
             title="Maximum Flow",
+            category="Network Flow",
             doc_llm=(
                 "## `max_flow`\n\n"
                 "Compute the **maximum flow** that can be pushed from `source` to `sink` over a "
@@ -292,6 +294,7 @@ class MaxFlowValue(ScalarFunction):
         keywords = ["max flow", "maximum flow", "min cut", "network flow", "scalar", "or-tools", "optimization"]
         tags = function_tags(
             title="Maximum-Flow Value (Scalar)",
+            category="Network Flow",
             doc_llm=(
                 "## `max_flow_value`\n\n"
                 "Return the **scalar maximum-flow value** from `source` to `sink` over a capacitated "
@@ -334,7 +337,7 @@ class MaxFlowValue(ScalarFunction):
     def compute(
         cls,
         arcs: Annotated[
-            pa.ListArray, Param(arrow_type=LIST_LIST_INT, doc="[from, to, capacity] integer arcs per row.")
+            pa.ListArray, Param(arrow_type=LIST_LIST_INT, doc="[from, to, capacity] arcs, one network per row.")
         ],
         source: Annotated[int, ConstParam("Source node id.")],
         sink: Annotated[int, ConstParam("Sink node id.")],
