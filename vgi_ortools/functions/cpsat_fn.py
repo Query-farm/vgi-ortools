@@ -63,16 +63,17 @@ _MAKESPAN_MODEL = (
 
 _EXAMPLES = [
     {
-        "description": "0/1 knapsack as a CP-SAT model: maximize value within a weight budget (optimum 50).",
+        "description": "0/1 knapsack as a CP-SAT model: maximize value within a weight budget (optimum 40).",
         "sql": (
-            f"SELECT var, value, status, objective FROM ortools.solve_cpsat(model := '{_KNAPSACK_MODEL}') ORDER BY var"
+            "SELECT var, value, status, objective "
+            f"FROM ortools.main.solve_cpsat(model := '{_KNAPSACK_MODEL}') ORDER BY var"
         ),
     },
     {
         "description": "Single-machine no-overlap schedule minimizing makespan (optimum 10).",
         "sql": (
-            f"SELECT objective, status FROM ortools.solve_cpsat(model := '{_MAKESPAN_MODEL}', time_limit_s := 5.0) "
-            "LIMIT 1"
+            "SELECT objective, status "
+            f"FROM ortools.main.solve_cpsat(model := '{_MAKESPAN_MODEL}', time_limit_s := 5.0) LIMIT 1"
         ),
     },
 ]
@@ -169,7 +170,7 @@ class SolveCpsat(TableFunctionGenerator[SolveCpsatArgs]):
                 "Solve a hand-built **CP-SAT** model expressed as a versioned JSON document.\n\n"
                 "```sql\n"
                 "SELECT var, value, status, objective\n"
-                "FROM ortools.solve_cpsat(model := '<json>', time_limit_s := 5.0);\n"
+                "FROM ortools.main.solve_cpsat(model := '<json>', time_limit_s := 5.0);\n"
                 "```\n\n"
                 "See the README (section A) for the full JSON dialect: `variables` (int / bool / "
                 "interval), `constraints` (linear, all_different, element, table, no_overlap, "
@@ -178,24 +179,14 @@ class SolveCpsat(TableFunctionGenerator[SolveCpsatArgs]):
                 "All numeric domains are integers. A no-solution model returns a single status row."
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `var` | `VARCHAR` | Variable name; intervals expand to `<name>.start/.size/.end/.presence`. |\n"
-                "| `value` | `BIGINT` | Assigned value (NULL on a non-solution status row). |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE` / `MODEL_INVALID` / `UNKNOWN`. |\n"
-                "| `objective` | `DOUBLE` | Objective value (NULL if no objective / no solution). |\n"
-                "| `best_bound` | `DOUBLE` | Best objective bound (the other end of the optimality gap). |\n"
-                "| `wall_time` | `DOUBLE` | Solver wall-clock seconds. |\n"
-                "| `num_branches` | `BIGINT` | Search branches explored. |"
-            ),
+            result_schema=_SCHEMA,
             source_url=_SOURCE_URL,
             executable_examples=_EXAMPLES,
         )
         examples = [
             FunctionExample(
                 sql=_EXAMPLES[0]["sql"],
-                description="0/1 knapsack as a CP-SAT model (optimum 50).",
+                description="0/1 knapsack as a CP-SAT model (optimum 40).",
             )
         ]
 

@@ -43,7 +43,9 @@ def _table(client: Client, name: str, named: dict) -> pa.Table:
 
 
 def test_solver_info(client: Client) -> None:
-    t = _table(client, "solver_info", {})
+    # ``solver_info`` is a base table backed by the ``solver_info_scan`` generator
+    # (VGI311); over the raw RPC we exercise the backing scan directly.
+    t = _table(client, "solver_info_scan", {})
     comps = set(t.column("component").to_pylist())
     assert {"ortools", "worker", "dialect"} <= comps
 
@@ -189,7 +191,9 @@ def test_knapsack_over_rpc(client: Client) -> None:
 
 
 def test_last_solve_stats_after_a_solve(client: Client) -> None:
+    # ``last_solve_stats`` is a base table backed by the ``last_solve_stats_scan``
+    # generator (VGI311); over the raw RPC we exercise the backing scan directly.
     _table(client, "solve_assignment", {"cost": _ll([[0, 0, 1], [1, 1, 1]]), "maximize": pa.scalar(False)})
-    t = _table(client, "last_solve_stats", {})
+    t = _table(client, "last_solve_stats_scan", {})
     metrics = dict(zip(t.column("metric").to_pylist(), t.column("value").to_pylist(), strict=True))
     assert metrics["status"] == "OPTIMAL"

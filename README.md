@@ -117,8 +117,8 @@ columns) — never an empty result set, so callers test
 | `solve_knapsack(item_values, weights, capacities)` | Multi-dimensional 0/1 knapsack → `(item, chosen, status)` |
 | `solve_bin_packing(sizes, bin_capacity, …)` | 1-D bin packing → `(item, bin, status)` |
 | `solve_bin_packing_bins(sizes, bin_capacity, …)` | Per-bin rollup → `(bin, used, status)` |
-| `solver_info()` | OR-Tools / worker / dialect versions → `(component, version)` |
-| `last_solve_stats()` | Stats of the most recent solve → `(metric, value)` |
+| `solver_info` *(table)* | OR-Tools / worker / dialect versions → `(component, version)` |
+| `last_solve_stats` *(table)* | Stats of the most recent solve → `(metric, value)` |
 
 > The knapsack value argument is named `item_values` (not `values`) because
 > `values` collides with the SQL `VALUES` keyword in DuckDB's named-argument

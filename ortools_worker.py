@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http,oauth]>=0.8.8",
+#     "vgi-python[http,oauth]>=0.14.0",
 #     "ortools>=9.15,<9.16",
 # ]
 # ///

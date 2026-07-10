@@ -42,7 +42,7 @@ _TSP_EXAMPLES = [
     {
         "description": "5-node TSP from a dense distance matrix; shortest tour length 17.",
         "sql": (
-            "SELECT seq, node, arrival FROM ortools.solve_tsp("
+            "SELECT seq, node, arrival FROM ortools.main.solve_tsp("
             "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], "
             "start := 0, time_limit_s := 1.0) ORDER BY seq"
         ),
@@ -53,7 +53,7 @@ _TSP_EXAMPLES = [
             "`array_agg([f, t, m])`) instead of a dense matrix -- here a complete 4-node graph."
         ),
         "sql": (
-            "SELECT seq, node, arrival FROM ortools.solve_tsp("
+            "SELECT seq, node, arrival FROM ortools.main.solve_tsp("
             "distance := [[0,1,1],[0,2,4],[0,3,2],[1,0,1],[1,2,1],[1,3,5],"
             "[2,0,4],[2,1,1],[2,3,1],[3,0,2],[3,1,5],[3,2,1]]::BIGINT[][], "
             "start := 0, time_limit_s := 1.0) ORDER BY seq"
@@ -64,7 +64,7 @@ _VRP_EXAMPLES = [
     {
         "description": "Capacitated VRP: 1 depot, 3 stops of demand 1, 2 vehicles of capacity 2 (optimal distance 6).",
         "sql": (
-            "SELECT route_id, seq, node, arrival, load_0 FROM ortools.solve_vrp("
+            "SELECT route_id, seq, node, arrival, load_0 FROM ortools.main.solve_vrp("
             "distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],"
             "[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], "
             "demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, "
@@ -143,19 +143,12 @@ class SolveTsp(TableFunctionGenerator[SolveTspArgs]):
                 "# solve_tsp\n\n"
                 "Shortest single-vehicle tour over a distance matrix.\n\n"
                 "```sql\n"
-                "SELECT seq, node, arrival FROM ortools.solve_tsp(\n"
+                "SELECT seq, node, arrival FROM ortools.main.solve_tsp(\n"
                 "  distance := (SELECT array_agg([f, t, m]) FROM dist_edges), start := 0) ORDER BY seq;\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `seq` | `INTEGER` | 0-based position in the tour. |\n"
-                "| `node` | `BIGINT` | Node id. |\n"
-                "| `arrival` | `BIGINT` | Cumulative distance at arrival. |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `INFEASIBLE` / `UNKNOWN` / `MODEL_INVALID`. |"
-            ),
+            result_schema=_TSP_SCHEMA,
             source_url=_TSP_URL,
             executable_examples=_TSP_EXAMPLES,
         )
@@ -367,7 +360,7 @@ class SolveVrp(TableFunctionGenerator[SolveVrpArgs]):
                 "# solve_vrp\n\n"
                 "Capacitated, time-windowed vehicle routing.\n\n"
                 "```sql\n"
-                "SELECT route_id, seq, node, arrival, load_0 AS load FROM ortools.solve_vrp("
+                "SELECT route_id, seq, node, arrival, load_0 AS load FROM ortools.main.solve_vrp("
                 "distance := (SELECT array_agg([f, t, m]) FROM dist_edges), "
                 "demand := (SELECT array_agg([node, units]) FROM stop_demand), "
                 "num_vehicles := 4, vehicle_capacity := 15, depot := 0, "
@@ -377,17 +370,21 @@ class SolveVrp(TableFunctionGenerator[SolveVrpArgs]):
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
+            result_dynamic_columns_md=(
+                "The number of `load_d` columns is fixed at bind time from the `demand` argument "
+                "(one per capacity dimension), so the output schema varies by call. For `k+1` capacity "
+                "dimensions the columns are:\n\n"
+                "| Name | Type | Description |\n"
                 "| --- | --- | --- |\n"
-                "| `route_id` | `INTEGER` | Vehicle index (NULL on a dropped-node row). |\n"
-                "| `seq` | `INTEGER` | 0-based stop order on the vehicle. |\n"
-                "| `node` | `BIGINT` | Node id (depot at seq 0 and last). |\n"
-                "| `arrival` | `BIGINT` | Cumulative time/distance at arrival. |\n"
-                "| `departure` | `BIGINT` | Arrival + service time. |\n"
-                "| `load_0` .. `load_k` | `BIGINT` | Cumulative load per capacity dimension. |\n"
-                "| `is_dropped` | `BOOLEAN` | True on the row emitted for a dropped node. |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE` / `UNKNOWN` / `MODEL_INVALID`. |"
+                "| route_id | INTEGER | Vehicle index (NULL on a dropped-node row). |\n"
+                "| seq | INTEGER | 0-based stop order on the vehicle. |\n"
+                "| node | BIGINT | Node id (depot at seq 0 and last). |\n"
+                "| arrival | BIGINT | Cumulative time/distance at arrival. |\n"
+                "| departure | BIGINT | Arrival + service time. |\n"
+                "| load_0 | BIGINT | Cumulative load for capacity dimension 0. |\n"
+                "| load_k | BIGINT | Cumulative load for capacity dimension k (one load_d column per dimension). |\n"
+                "| is_dropped | BOOLEAN | True on the row emitted for a dropped node. |\n"
+                "| status | VARCHAR | OPTIMAL / FEASIBLE / INFEASIBLE / UNKNOWN / MODEL_INVALID. |"
             ),
             source_url=_VRP_URL,
             executable_examples=_VRP_EXAMPLES,

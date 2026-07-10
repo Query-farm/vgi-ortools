@@ -54,7 +54,7 @@ _KNAPSACK_EXAMPLES = [
     {
         "description": "Single-dimension 0/1 knapsack: pick items maximizing value within capacity 40 (optimum 80).",
         "sql": (
-            "SELECT item, chosen FROM ortools.solve_knapsack("
+            "SELECT item, chosen FROM ortools.main.solve_knapsack("
             "item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], "
             "capacities := [40]::BIGINT[]) ORDER BY item"
         ),
@@ -65,7 +65,7 @@ _KNAPSACK_EXAMPLES = [
             "weight budget (50) and a volume budget (5) at once -- one `weights` column per dimension."
         ),
         "sql": (
-            "SELECT item, chosen, status FROM ortools.solve_knapsack("
+            "SELECT item, chosen, status FROM ortools.main.solve_knapsack("
             "item_values := [60,100,120]::BIGINT[], weights := [[10,2],[20,3],[30,4]]::BIGINT[][], "
             "capacities := [50,5]::BIGINT[]) ORDER BY item"
         ),
@@ -73,9 +73,9 @@ _KNAPSACK_EXAMPLES = [
 ]
 _BINPACK_EXAMPLES = [
     {
-        "description": "Pack six items into the fewest bins of capacity 10 (optimum 2 bins).",
+        "description": "Pack six items into the fewest bins of capacity 10 (optimum 3 bins).",
         "sql": (
-            "SELECT count(DISTINCT bin) AS bins FROM ortools.solve_bin_packing("
+            "SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing("
             "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)"
         ),
     }
@@ -146,20 +146,14 @@ class SolveKnapsack(TableFunctionGenerator[SolveKnapsackArgs]):
                 "# solve_knapsack\n\n"
                 "Multi-dimensional 0/1 knapsack maximizing value.\n\n"
                 "```sql\n"
-                "SELECT item, chosen FROM ortools.solve_knapsack("
+                "SELECT item, chosen FROM ortools.main.solve_knapsack("
                 "item_values := (SELECT array_agg(value) FROM items), "
                 "weights := (SELECT array_agg([weight]) FROM items), "
                 "capacities := [100]::BIGINT[]);\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `item` | `BIGINT` | Item index (0-based). |\n"
-                "| `chosen` | `BOOLEAN` | Whether the item is packed. |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE`. |"
-            ),
+            result_schema=_KNAPSACK_SCHEMA,
             source_url=_KNAPSACK_URL,
             executable_examples=_KNAPSACK_EXAMPLES,
         )
@@ -243,22 +237,16 @@ class SolveBinPacking(TableFunctionGenerator[SolveBinPackingArgs]):
                 "# solve_bin_packing\n\n"
                 "Pack items into the fewest fixed-capacity bins.\n\n"
                 "```sql\n"
-                "SELECT item, bin FROM ortools.solve_bin_packing(\n"
+                "SELECT item, bin FROM ortools.main.solve_bin_packing(\n"
                 "  sizes := (SELECT array_agg(size) FROM items), bin_capacity := 100);\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `item` | `BIGINT` | Item index (0-based). |\n"
-                "| `bin` | `BIGINT` | Bin the item is packed into (0-based). |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE`. |"
-            ),
+            result_schema=_BINPACK_SCHEMA,
             source_url=_BINPACK_URL,
             executable_examples=_BINPACK_EXAMPLES,
         )
-        examples = [FunctionExample(sql=_BINPACK_EXAMPLES[0]["sql"], description="Pack six items into 2 bins.")]
+        examples = [FunctionExample(sql=_BINPACK_EXAMPLES[0]["sql"], description="Pack six items into 3 bins.")]
 
     @classmethod
     def cardinality(cls, params: BindParams[SolveBinPackingArgs]) -> TableCardinality:
@@ -309,24 +297,18 @@ class SolveBinPackingBins(TableFunctionGenerator[SolveBinPackingArgs]):
                 "# solve_bin_packing_bins\n\n"
                 "Per-bin rollup of a bin-packing solution.\n\n"
                 "```sql\n"
-                "SELECT bin, used FROM ortools.solve_bin_packing_bins(\n"
+                "SELECT bin, used FROM ortools.main.solve_bin_packing_bins(\n"
                 "  sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10) ORDER BY bin;\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `bin` | `BIGINT` | Bin index (only bins holding >= 1 item). |\n"
-                "| `used` | `BIGINT` | Number of items packed into the bin. |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE`. |"
-            ),
+            result_schema=_BINS_SCHEMA,
             source_url=_BINPACK_URL,
             executable_examples=[
                 {
                     "description": "Per-bin item counts for a six-item pack into capacity-10 bins.",
                     "sql": (
-                        "SELECT bin, used FROM ortools.solve_bin_packing_bins("
+                        "SELECT bin, used FROM ortools.main.solve_bin_packing_bins("
                         "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10) ORDER BY bin"
                     ),
                 }
@@ -335,7 +317,7 @@ class SolveBinPackingBins(TableFunctionGenerator[SolveBinPackingArgs]):
         examples = [
             FunctionExample(
                 sql=(
-                    "SELECT bin, used FROM ortools.solve_bin_packing_bins("
+                    "SELECT bin, used FROM ortools.main.solve_bin_packing_bins("
                     "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10) ORDER BY bin"
                 ),
                 description="Per-bin rollup of a six-item pack.",

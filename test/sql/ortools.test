@@ -12,7 +12,7 @@ ATTACH 'ortools' AS opt (TYPE vgi, LOCATION '${VGI_ORTOOLS_WORKER}');
 
 # ---- solver_info reports the bundled solver + worker versions ----
 query I
-SELECT count(*) FROM opt.solver_info() WHERE component IN ('ortools', 'worker', 'dialect');
+SELECT count(*) FROM opt.solver_info WHERE component IN ('ortools', 'worker', 'dialect');
 ----
 3
 

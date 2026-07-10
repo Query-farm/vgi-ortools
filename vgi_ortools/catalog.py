@@ -12,12 +12,25 @@ from __future__ import annotations
 
 import json
 
-from vgi.catalog import Catalog, Schema
+import pyarrow as pa
+from vgi.catalog import Catalog, Schema, Table
 
 from . import DIALECT_VERSION, __version__
 from .functions import ALL_FUNCTIONS
+from .functions.info_fn import INFO_SCHEMA, STATS_SCHEMA, LastSolveStats, SolverInfo
 
 SOURCE_URL = "https://github.com/Query-farm/vgi-ortools"
+
+
+def _column_comments(schema: pa.Schema) -> dict[str, str]:
+    """Extract ``{column: comment}`` from an Arrow schema's field metadata."""
+    out: dict[str, str] = {}
+    for f in schema:
+        meta = f.metadata or {}
+        if b"comment" in meta:
+            out[f.name] = meta[b"comment"].decode("utf-8")
+    return out
+
 
 _CATALOG_DESCRIPTION_LLM = (
     "Prescriptive optimization and constraint solving inside DuckDB, powered by Google OR-Tools. This is "
@@ -89,13 +102,13 @@ _CATALOG_KEYWORDS = [
 ]
 
 _SCHEMA_EXAMPLE_QUERIES = (
-    "SELECT worker, task, cost FROM ortools.solve_assignment("
+    "SELECT worker, task, cost FROM ortools.main.solve_assignment("
     "cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], "
     "maximize := false) ORDER BY worker;\n"
-    "SELECT seq, node, arrival FROM ortools.solve_tsp("
+    "SELECT seq, node, arrival FROM ortools.main.solve_tsp("
     "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0) "
     "ORDER BY seq;\n"
-    "SELECT component, version FROM ortools.solver_info() ORDER BY component;"
+    "SELECT component, version FROM ortools.main.solver_info ORDER BY component;"
 )
 
 # Fixed analyst-suitability suite (`vgi-lint simulate` / VGI152 / VGI920). Each
@@ -115,7 +128,7 @@ _AGENT_TEST_TASKS = [
             "return that minimum total cost as a single number."
         ),
         "reference_sql": (
-            "SELECT sum(cost) AS total_cost FROM ortools.solve_assignment("
+            "SELECT sum(cost) AS total_cost FROM ortools.main.solve_assignment("
             "cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],"
             "[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false)"
         ),
@@ -129,7 +142,7 @@ _AGENT_TEST_TASKS = [
             "from node 0 to node 3? Return a single number."
         ),
         "reference_sql": (
-            "SELECT ortools.max_flow_value("
+            "SELECT ortools.main.max_flow_value("
             "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) AS max_flow"
         ),
         "ignore_column_names": True,
@@ -143,7 +156,7 @@ _AGENT_TEST_TASKS = [
             "total cost as a single number."
         ),
         "reference_sql": (
-            "SELECT sum(cost) AS total_cost FROM ortools.min_cost_flow("
+            "SELECT sum(cost) AS total_cost FROM ortools.main.min_cost_flow("
             "arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[2,3,15,1],[2,4,4,3],[3,4,20,2],"
             "[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[4,-20]]::BIGINT[][])"
         ),
@@ -157,7 +170,7 @@ _AGENT_TEST_TASKS = [
             "last operation). Return the optimal makespan as a single number."
         ),
         "reference_sql": (
-            'SELECT max("end") AS makespan FROM ortools.solve_jobshop('
+            'SELECT max("end") AS makespan FROM ortools.main.solve_jobshop('
             "tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][])"
         ),
         "ignore_column_names": True,
@@ -169,7 +182,7 @@ _AGENT_TEST_TASKS = [
             "number of bins needed? Return a single number."
         ),
         "reference_sql": (
-            "SELECT count(DISTINCT bin) AS bins FROM ortools.solve_bin_packing("
+            "SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing("
             "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10)"
         ),
         "ignore_column_names": True,
@@ -182,11 +195,130 @@ _AGENT_TEST_TASKS = [
             "distinct locations does the computed optimal tour visit? Return a single number."
         ),
         "reference_sql": (
-            "SELECT count(DISTINCT node) AS visited FROM ortools.solve_tsp("
+            "SELECT count(DISTINCT node) AS visited FROM ortools.main.solve_tsp("
             "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], "
             "start := 0)"
         ),
         "ignore_column_names": True,
+    },
+    {
+        "name": "cpsat_items_selected",
+        "prompt": (
+            "Solve this CP-SAT model (booleans a, b, c) that maximizes 10*a + 20*b + 30*c subject to "
+            "5*a + 10*b + 15*c <= 20: "
+            '\'{"version":1,"variables":[{"kind":"bool","name":"a"},{"kind":"bool","name":"b"},'
+            '{"kind":"bool","name":"c"}],"constraints":[{"type":"linear","expr":{"sum":[{"coef":5,'
+            '"var":"a"},{"coef":10,"var":"b"},{"coef":15,"var":"c"}]},"op":"<=","rhs":20}],'
+            '"objective":{"sense":"maximize","terms":[{"coef":10,"var":"a"},{"coef":20,"var":"b"},'
+            '{"coef":30,"var":"c"}]}}\'. In the optimal solution, how many of the three booleans are '
+            "set to 1? Return a single number."
+        ),
+        "reference_sql": (
+            "SELECT sum(value) AS n_selected FROM ortools.main.solve_cpsat(model := "
+            '\'{"version":1,"variables":[{"kind":"bool","name":"a"},{"kind":"bool","name":"b"},'
+            '{"kind":"bool","name":"c"}],"constraints":[{"type":"linear","expr":{"sum":[{"coef":5,'
+            '"var":"a"},{"coef":10,"var":"b"},{"coef":15,"var":"c"}]},"op":"<=","rhs":20}],'
+            '"objective":{"sense":"maximize","terms":[{"coef":10,"var":"a"},{"coef":20,"var":"b"},'
+            '{"coef":30,"var":"c"}]}}\')'
+        ),
+        "ignore_column_names": True,
+    },
+    {
+        "name": "vrp_vehicles_used",
+        "prompt": (
+            "A depot (node 0) must serve three stops (nodes 1, 2, 3), each with demand 1, using up to 2 "
+            "vehicles of capacity 2. The [from, to, distance] arcs are "
+            "[[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]] "
+            "and the [node, demand] pairs are [[1,1],[2,1],[3,1]]. In the optimal routing, how many "
+            "vehicles are actually used? Return a single number."
+        ),
+        "reference_sql": (
+            "SELECT count(DISTINCT route_id) AS vehicles_used FROM ortools.main.solve_vrp("
+            "distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],"
+            "[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], "
+            "demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, "
+            "depot := 0, time_limit_s := 3.0)"
+        ),
+        "ignore_column_names": True,
+    },
+    {
+        "name": "rcpsp_makespan",
+        "prompt": (
+            "Schedule a project of four tasks given as [task, duration, demand] rows "
+            "[[0,3,2],[1,2,1],[2,4,2],[3,2,1]], with finish-to-start precedences [[0,2],[1,3]] and a "
+            "single renewable resource of capacity 2 ([[0,2]]), minimizing the makespan. Return the "
+            "optimal makespan as a single number."
+        ),
+        "reference_sql": (
+            "SELECT DISTINCT makespan FROM ortools.main.solve_rcpsp("
+            "tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], "
+            "precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0)"
+        ),
+        "ignore_column_names": True,
+    },
+    {
+        "name": "max_flow_arc_rows",
+        "prompt": (
+            "A directed network has [from, to, capacity] arcs "
+            "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]. Using the per-arc maximum-flow solver, "
+            "compute the total flow that leaves the source node 0 when routing as much as possible from "
+            "node 0 to node 3. Return a single number."
+        ),
+        "reference_sql": (
+            'SELECT sum(flow) FILTER (WHERE "from" = 0) AS out_of_source FROM ortools.main.max_flow('
+            "arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)"
+        ),
+        "ignore_column_names": True,
+    },
+    {
+        "name": "knapsack_items_chosen",
+        "prompt": (
+            "You have five items with values [10,20,30,40,50] and single-dimension weights "
+            "[[5],[10],[15],[20],[25]], and a knapsack of capacity [40]. Choosing items to maximize "
+            "total value without exceeding capacity, how many items are packed? Return a single number."
+        ),
+        "reference_sql": (
+            "SELECT count(*) FILTER (WHERE chosen) AS n_chosen FROM ortools.main.solve_knapsack("
+            "item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], "
+            "capacities := [40]::BIGINT[])"
+        ),
+        "ignore_column_names": True,
+    },
+    {
+        "name": "bin_packing_bins_rollup",
+        "prompt": (
+            "Pack items of sizes [3,5,2,7,1,4] into bins of capacity 10. Using the per-bin rollup, how "
+            "many bins end up holding at least one item? Return a single number."
+        ),
+        "reference_sql": (
+            "SELECT count(*) AS bins FROM ortools.main.solve_bin_packing_bins("
+            "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)"
+        ),
+        "ignore_column_names": True,
+    },
+    {
+        "name": "solver_info_ortools_version",
+        "prompt": (
+            "Which version of Google OR-Tools does this worker bundle? Find the version string it "
+            "reports for its OR-Tools engine."
+        ),
+        "success_criteria": (
+            "The answer reports an OR-Tools version string, obtained from the solver_info table's "
+            "'ortools' component row."
+        ),
+        "check_sql": "SELECT count(*) > 0 FROM ortools.main.solver_info WHERE component = 'ortools'",
+    },
+    {
+        "name": "last_solve_stats_reports_status",
+        "prompt": (
+            "Run any solve (for example a small assignment), then inspect the statistics of the most "
+            "recent solve this worker handled and report that solve's status."
+        ),
+        "success_criteria": (
+            "The answer reports the most recent solve's status (e.g. OPTIMAL), obtained from the "
+            "last_solve_stats table's 'status' metric row."
+        ),
+        "check_sql": "SELECT count(*) > 0 FROM ortools.main.last_solve_stats WHERE metric = 'status'",
     },
 ]
 
@@ -271,6 +403,109 @@ _SCHEMA_TAGS = {
     "topic": "constraint-solving-and-routing",
 }
 
+# ---------------------------------------------------------------------------
+# Introspection base TABLES (browsable, credential-free scans).
+#
+# `solver_info` and `last_solve_stats` are exposed as base tables backed by a
+# zero-argument scan generator (VGI311: a parameterless table function should be
+# a table; VGI146: a worker needs at least one browsable relation). An agent can
+# `SELECT * FROM ortools.main.solver_info` to discover the bundled solver
+# versions, or scan `last_solve_stats` for the metrics of the most recent solve
+# on this worker process -- both scan with no arguments, no network, no secret.
+# ---------------------------------------------------------------------------
+_SOLVER_INFO_TABLE_TAGS = {
+    "vgi.title": "Solver / Worker Versions",
+    "vgi.category": "Introspection",
+    "vgi.keywords": json.dumps(["solver info", "version", "ortools version", "diagnostics", "introspection", "cp-sat"]),
+    "vgi.doc_llm": (
+        "The bundled solver and worker versions as `(component, version)` rows: `ortools`, `cp_sat`, "
+        "`glop`, `pdlp`, the `worker` build version, and the `dialect` version of the `solve_cpsat` JSON "
+        "model. Scan it directly (no arguments) for diagnostics or compatibility checks -- e.g. to "
+        "confirm which OR-Tools release backs a result before relying on version-specific behaviour."
+    ),
+    "vgi.doc_md": (
+        "## solver_info\n\n"
+        "A browsable table of the bundled component versions, one row per component: `ortools`, "
+        "`cp_sat`, `glop`, `pdlp`, the `worker` build version, and the `dialect` version of the "
+        "`solve_cpsat` JSON model. It takes no arguments -- scan it and filter with `WHERE`.\n\n"
+        "**Reference:** [OR-Tools documentation](https://developers.google.com/optimization)"
+    ),
+    "vgi.executable_examples": json.dumps(
+        [
+            {
+                "description": "List the bundled solver and worker versions.",
+                "sql": "SELECT component, version FROM ortools.main.solver_info ORDER BY component",
+            },
+            {
+                "description": "Look up just the OR-Tools engine version.",
+                "sql": "SELECT version FROM ortools.main.solver_info WHERE component = 'ortools'",
+            },
+        ]
+    ),
+    "vgi.example_queries": json.dumps(
+        [
+            {
+                "description": "List every bundled component and its version.",
+                "sql": "SELECT component, version FROM ortools.main.solver_info ORDER BY component",
+            },
+            {
+                "description": "Fetch just the OR-Tools engine version.",
+                "sql": "SELECT version FROM ortools.main.solver_info WHERE component = 'ortools'",
+            },
+        ]
+    ),
+    "domain": "operations-research",
+}
+
+_LAST_SOLVE_STATS_TABLE_TAGS = {
+    "vgi.title": "Last Solve Statistics",
+    "vgi.category": "Introspection",
+    "vgi.keywords": json.dumps(
+        ["last solve", "solve stats", "diagnostics", "wall time", "num branches", "introspection"]
+    ),
+    "vgi.doc_llm": (
+        "The statistics of the **most recent solve** handled by this worker process, as `(metric, value)` "
+        "rows: `status`, `objective`, `best_bound`, `wall_time`, `num_branches`, `num_conflicts`, "
+        "`num_booleans`, `deterministic_time`. A convenience mirror of the solve metadata; every `value` "
+        "is NULL until the first solve runs. This is per-process, not strictly per-connection -- the "
+        "authoritative, race-free source is the metadata columns on each solver's own result rows."
+    ),
+    "vgi.doc_md": (
+        "## last_solve_stats\n\n"
+        "A browsable table of the most recent solve's metrics, one row per metric: `status`, "
+        "`objective`, `best_bound`, `wall_time`, `num_branches`, `num_conflicts`, `num_booleans`, "
+        "`deterministic_time`. Scan it after a solve; every `value` is NULL until the first solve runs. "
+        "It reflects the last solve on this worker *process*, so for a race-free per-query value prefer "
+        "the metadata columns on the solver's own result rows.\n\n"
+        "**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/cp/cp_solver)"
+    ),
+    "vgi.executable_examples": json.dumps(
+        [
+            {
+                "description": "Run a solve, then read back the statistics of that solve.",
+                "sql": [
+                    "SELECT count(*) FROM ortools.main.solve_assignment("
+                    "cost := [[0,0,1],[1,1,1]]::BIGINT[][], maximize := false)",
+                    "SELECT metric, value FROM ortools.main.last_solve_stats ORDER BY metric",
+                ],
+            }
+        ]
+    ),
+    "vgi.example_queries": json.dumps(
+        [
+            {
+                "description": "Read every metric of the most recent solve on this worker.",
+                "sql": "SELECT metric, value FROM ortools.main.last_solve_stats ORDER BY metric",
+            },
+            {
+                "description": "Fetch just the status of the most recent solve.",
+                "sql": "SELECT value FROM ortools.main.last_solve_stats WHERE metric = 'status'",
+            },
+        ]
+    ),
+    "domain": "operations-research",
+}
+
 ORTOOLS_CATALOG = Catalog(
     name="ortools",
     default_schema="main",
@@ -282,6 +517,35 @@ ORTOOLS_CATALOG = Catalog(
             comment="OR-Tools solvers: CP-SAT, routing, assignment, scheduling, flow, packing.",
             tags=_SCHEMA_TAGS,
             functions=list(ALL_FUNCTIONS),
+            tables=[
+                Table(
+                    name="solver_info",
+                    function=SolverInfo,
+                    comment="Bundled OR-Tools / worker / dialect versions, one row per component (no arguments).",
+                    column_comments=_column_comments(INFO_SCHEMA),
+                    # One row per component name; both columns are always populated.
+                    not_null=("component", "version"),
+                    primary_key=(("component",),),
+                    cardinality_estimate=6,
+                    cardinality_max=64,
+                    tags=_SOLVER_INFO_TABLE_TAGS,
+                ),
+                Table(
+                    name="last_solve_stats",
+                    function=LastSolveStats,
+                    comment=(
+                        "Statistics of the most recent solve on this worker process, one row per metric "
+                        "(NULL values until the first solve)."
+                    ),
+                    column_comments=_column_comments(STATS_SCHEMA),
+                    # One row per metric name (the value may be NULL until the first solve).
+                    not_null=("metric",),
+                    primary_key=(("metric",),),
+                    cardinality_estimate=8,
+                    cardinality_max=64,
+                    tags=_LAST_SOLVE_STATS_TABLE_TAGS,
+                ),
+            ],
         ),
     ],
 )

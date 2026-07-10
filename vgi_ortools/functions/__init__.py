@@ -22,7 +22,11 @@ from .packing_fn import SolveBinPacking, SolveBinPackingBins, SolveKnapsack
 from .routing_fn import SolveTsp, SolveVrp
 from .scheduling_fn import SolveJobshop, SolveRcpsp
 
-#: Table functions (every solver + introspection table fns).
+#: Callable table functions (every solver). The two introspection relations
+#: (``solver_info`` / ``last_solve_stats``) are NOT here: they back browsable
+#: base *tables* declared in :mod:`vgi_ortools.catalog` (VGI311/VGI146), and their
+#: scan generators (:class:`SolverInfo` / :class:`LastSolveStats`) are exported
+#: for that purpose rather than registered as parameterless table functions.
 TABLE_FUNCTIONS: list[type] = [
     SolveCpsat,
     SolveAssignment,
@@ -35,13 +39,14 @@ TABLE_FUNCTIONS: list[type] = [
     SolveKnapsack,
     SolveBinPacking,
     SolveBinPackingBins,
-    SolverInfo,
-    LastSolveStats,
 ]
 
 #: Scalar functions.
 SCALAR_FUNCTIONS: list[type] = [
     MaxFlowValue,
 ]
+
+#: The scan generators backing the introspection base tables (see the catalog).
+INTROSPECTION_SCANS: list[type] = [SolverInfo, LastSolveStats]
 
 ALL_FUNCTIONS: list[type] = [*TABLE_FUNCTIONS, *SCALAR_FUNCTIONS]

@@ -53,7 +53,7 @@ _JOBSHOP_EXAMPLES = [
     {
         "description": "Two-job, two-machine job shop minimizing makespan (optimum 7).",
         "sql": (
-            'SELECT job, task, machine, start, "end", makespan FROM ortools.solve_jobshop('
+            'SELECT job, task, machine, start, "end", makespan FROM ortools.main.solve_jobshop('
             "tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][], time_limit_s := 5.0) "
             "ORDER BY job, task"
         ),
@@ -63,7 +63,7 @@ _RCPSP_EXAMPLES = [
     {
         "description": "Four-task project, one resource of capacity 2, with two precedences.",
         "sql": (
-            'SELECT task, start, "end", makespan, status FROM ortools.solve_rcpsp('
+            'SELECT task, start, "end", makespan, status FROM ortools.main.solve_rcpsp('
             "tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], "
             "precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0) "
             "ORDER BY task"
@@ -131,21 +131,11 @@ class SolveJobshop(TableFunctionGenerator[SolveJobshopArgs]):
                 "Job-shop scheduling minimizing makespan.\n\n"
                 "```sql\n"
                 'SELECT job, task, machine, start, "end"\n'
-                "FROM ortools.solve_jobshop(tasks := (SELECT array_agg([job, task, machine, dur]) FROM ops));\n"
+                "FROM ortools.main.solve_jobshop(tasks := (SELECT array_agg([job, task, machine, dur]) FROM ops));\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `job` | `BIGINT` | Job id. |\n"
-                "| `task` | `BIGINT` | Task index within the job. |\n"
-                "| `machine` | `BIGINT` | Machine the task runs on. |\n"
-                "| `start` | `BIGINT` | Scheduled start time. |\n"
-                "| `end` | `BIGINT` | Scheduled end time. |\n"
-                "| `makespan` | `BIGINT` | Optimal makespan (repeated on every row). |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE` / `UNKNOWN`. |"
-            ),
+            result_schema=_JOBSHOP_SCHEMA,
             source_url=_JOBSHOP_URL,
             executable_examples=_JOBSHOP_EXAMPLES,
         )
@@ -258,22 +248,14 @@ class SolveRcpsp(TableFunctionGenerator[SolveRcpspArgs]):
                 "# solve_rcpsp\n\n"
                 "Resource-constrained project scheduling minimizing makespan.\n\n"
                 "```sql\n"
-                'SELECT task, start, "end", makespan FROM ortools.solve_rcpsp('
+                'SELECT task, start, "end", makespan FROM ortools.main.solve_rcpsp('
                 "tasks := (SELECT array_agg([t, dur, d0]) FROM project_tasks), "
                 "precedences := (SELECT array_agg([p, s]) FROM deps), "
                 "resources := [[0, 4]]::BIGINT[][]);\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `task` | `BIGINT` | Task id. |\n"
-                "| `start` | `BIGINT` | Scheduled start time. |\n"
-                "| `end` | `BIGINT` | Scheduled end time. |\n"
-                "| `makespan` | `BIGINT` | Optimal makespan (repeated on every row). |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `FEASIBLE` / `INFEASIBLE` / `UNKNOWN`. |"
-            ),
+            result_schema=_RCPSP_SCHEMA,
             source_url=_RCPSP_URL,
             executable_examples=_RCPSP_EXAMPLES,
         )

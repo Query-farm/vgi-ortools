@@ -50,7 +50,7 @@ _MCF_EXAMPLES = [
     {
         "description": "Min-cost flow of 20 units from node 0 to node 4 (optimal total cost 150).",
         "sql": (
-            'SELECT "from", "to", flow, cost FROM ortools.min_cost_flow('
+            'SELECT "from", "to", flow, cost FROM ortools.main.min_cost_flow('
             "arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[2,3,15,1],[2,4,4,3],[3,4,20,2],"
             "[4,2,5,3]]::BIGINT[][], "
             'supplies := [[0,20],[4,-20]]::BIGINT[][]) ORDER BY "from", "to"'
@@ -61,7 +61,7 @@ _MF_EXAMPLES = [
     {
         "description": "Max flow from node 0 to node 3 (value 30).",
         "sql": (
-            'SELECT sum(flow) FILTER (WHERE "from" = 0) AS out_of_source FROM ortools.max_flow('
+            'SELECT sum(flow) FILTER (WHERE "from" = 0) AS out_of_source FROM ortools.main.max_flow('
             "arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)"
         ),
     }
@@ -131,22 +131,14 @@ class MinCostFlow(TableFunctionGenerator[MinCostFlowArgs]):
                 "# min_cost_flow\n\n"
                 "Minimum-cost flow over a capacitated, costed network.\n\n"
                 "```sql\n"
-                'SELECT "from", "to", flow, cost FROM ortools.min_cost_flow('
+                'SELECT "from", "to", flow, cost FROM ortools.main.min_cost_flow('
                 "arcs := (SELECT array_agg([f, t, cap, c]) FROM edges), "
                 "supplies := (SELECT array_agg([node, s]) FROM nodes));\n"
                 "```\n\n"
                 "Supplies must sum to zero. Returns one row per arc with positive flow."
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `from` | `BIGINT` | Arc tail node. |\n"
-                "| `to` | `BIGINT` | Arc head node. |\n"
-                "| `flow` | `BIGINT` | Flow on the arc (zero-flow arcs omitted). |\n"
-                "| `cost` | `BIGINT` | `flow * unit_cost`. |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `INFEASIBLE` / `UNKNOWN`. |"
-            ),
+            result_schema=_MCF_SCHEMA,
             source_url=_MCF_URL,
             executable_examples=_MCF_EXAMPLES,
         )
@@ -234,19 +226,12 @@ class MaxFlow(TableFunctionGenerator[MaxFlowArgs]):
                 "# max_flow\n\n"
                 "Maximum flow from `source` to `sink` over a capacitated network.\n\n"
                 "```sql\n"
-                'SELECT "from", "to", flow FROM ortools.max_flow(\n'
+                'SELECT "from", "to", flow FROM ortools.main.max_flow(\n'
                 "  arcs := (SELECT array_agg([f, t, cap]) FROM edges), source := 0, sink := 5);\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `from` | `BIGINT` | Arc tail node. |\n"
-                "| `to` | `BIGINT` | Arc head node. |\n"
-                "| `flow` | `BIGINT` | Flow on the arc (zero-flow arcs omitted). |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` / `INFEASIBLE` / `UNKNOWN`. |"
-            ),
+            result_schema=_MF_SCHEMA,
             source_url=_MF_URL,
             executable_examples=_MF_EXAMPLES,
         )
@@ -306,21 +291,17 @@ class MaxFlowValue(ScalarFunction):
                 "# max_flow_value\n\n"
                 "Scalar maximum-flow value.\n\n"
                 "```sql\n"
-                "SELECT ortools.max_flow_value(\n"
+                "SELECT ortools.main.max_flow_value(\n"
                 "  [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3);  -- 30\n"
                 "```\n"
             ),
             keywords=keywords,
-            result_columns_md=(
-                "Returns a single `BIGINT`: the maximum flow value from `source` to `sink` "
-                "(`0` for an infeasible / disconnected instance)."
-            ),
             source_url=_MF_URL,
             executable_examples=[
                 {
                     "description": "Max-flow value from node 0 to node 3 (= 30).",
                     "sql": (
-                        "SELECT ortools.max_flow_value("
+                        "SELECT ortools.main.max_flow_value("
                         "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3)"
                     ),
                 }
@@ -328,7 +309,10 @@ class MaxFlowValue(ScalarFunction):
         )
         examples = [
             FunctionExample(
-                sql=("SELECT ortools.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3)"),
+                sql=(
+                    "SELECT ortools.main.max_flow_value("
+                    "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3)"
+                ),
                 description="Maximum flow value from node 0 to node 3 (= 30).",
             )
         ]

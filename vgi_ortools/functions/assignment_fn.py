@@ -39,7 +39,7 @@ _EXAMPLES = [
     {
         "description": "Assign 3 workers to 3 tasks minimizing total cost (unique optimum 0->1, 1->0, 2->2).",
         "sql": (
-            "SELECT worker, task, cost FROM ortools.solve_assignment("
+            "SELECT worker, task, cost FROM ortools.main.solve_assignment("
             "cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],"
             "[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false) ORDER BY worker"
         ),
@@ -47,7 +47,7 @@ _EXAMPLES = [
     {
         "description": "Maximize total value instead of minimizing cost.",
         "sql": (
-            "SELECT worker, task, cost, status FROM ortools.solve_assignment("
+            "SELECT worker, task, cost, status FROM ortools.main.solve_assignment("
             "cost := [[0,0,8],[0,1,7],[1,0,6],[1,1,9]]::BIGINT[][], maximize := true) ORDER BY worker"
         ),
     },
@@ -117,21 +117,14 @@ class SolveAssignment(TableFunctionGenerator[SolveAssignmentArgs]):
                 "Minimum- (or maximum-) cost matching of workers to tasks over sparse "
                 "`[worker, task, cost]` arcs.\n\n"
                 "```sql\n"
-                "SELECT worker, task, cost FROM ortools.solve_assignment(\n"
+                "SELECT worker, task, cost FROM ortools.main.solve_assignment(\n"
                 "  cost := (SELECT array_agg([w, t, c]) FROM costs), maximize := false);\n"
                 "```\n\n"
                 "Returns one row per matched worker; an unmatchable instance returns a single "
                 "`status = 'INFEASIBLE'` row."
             ),
             keywords=keywords,
-            result_columns_md=(
-                "| column | type | description |\n"
-                "| --- | --- | --- |\n"
-                "| `worker` | `BIGINT` | Worker id. |\n"
-                "| `task` | `BIGINT` | Task assigned to the worker (NULL on an INFEASIBLE row). |\n"
-                "| `cost` | `BIGINT` | Arc cost of this match (NULL on an INFEASIBLE row). |\n"
-                "| `status` | `VARCHAR` | `OPTIMAL` or `INFEASIBLE`. |"
-            ),
+            result_schema=_SCHEMA,
             source_url=_SOURCE_URL,
             executable_examples=_EXAMPLES,
         )

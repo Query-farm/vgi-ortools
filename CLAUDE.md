@@ -82,9 +82,15 @@ never `count(*)=0`.
   value arg is the field `item_values`, not `values`, which collides with the
   SQL `VALUES` keyword).
 - Every function carries vgi-lint metadata: `vgi.title` / `vgi.doc_llm` /
-  `vgi.doc_md` / `vgi.keywords` / `vgi.result_columns_md` / `vgi.source_url`
-  (a `developers.google.com/optimization/...` deep link) / `vgi.executable_examples`
-  built via `functions/_meta.function_tags`.
+  `vgi.doc_md` / `vgi.keywords` / `vgi.result_columns_schema` (structured
+  `{name,type,description}` derived from the Arrow output schema; `solve_vrp`
+  uses `vgi.result_dynamic_columns_md` since its `load_*` columns vary) /
+  `vgi.executable_examples` (fully catalog-qualified as `ortools.main.<fn>`)
+  built via `functions/_meta.function_tags`. The OR-Tools docs deep link is
+  appended inline to `vgi.doc_md` (the canonical `vgi.source_url` lives on the
+  catalog only). The two introspection relations (`solver_info`,
+  `last_solve_stats`) are browsable base **tables** (declared in `catalog.py`
+  via `Table(function=...)`), not parameterless table functions.
 
 ## Threading / determinism (IMPORTANT)
 
