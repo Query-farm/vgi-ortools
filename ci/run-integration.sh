@@ -106,6 +106,16 @@ case "$TRANSPORT" in
       ' "$sf" > "$sf.tmp" && mv "$sf.tmp" "$sf"
     done
 
+    # DOCKER image_test hook: if VGI_ORTOOLS_WORKER already points at an
+    # http(s):// URL, the caller has a warm HTTP container (or other out-of-band
+    # server) listening — use it verbatim as the LOCATION and DON'T boot our own
+    # worker. (We still injected the httpfs INSTALL/LOAD above because
+    # TRANSPORT=http.) This lets the Docker image_test run the full suite against
+    # one warm container instead of a source-tree binary that isn't on the runner.
+    if [[ "${VGI_ORTOOLS_WORKER:-}" =~ ^https?:// ]]; then
+      echo "HTTP worker already running at $VGI_ORTOOLS_WORKER (pre-set URL) — not booting a local worker."
+    else
+
     # Boot the worker in HTTP mode on an auto-selected port. The worker writes
     # the chosen port to --port-file atomically, so we watch for the file to
     # appear rather than parsing stdout. HTTP mode needs the `http` extra
@@ -140,6 +150,7 @@ case "$TRANSPORT" in
     # extension POSTs each RPC method at <LOCATION>/<method>.
     export VGI_ORTOOLS_WORKER="http://127.0.0.1:$PORT"
     echo "HTTP worker ready on $VGI_ORTOOLS_WORKER (pid $SERVER_PID)"
+    fi
     ;;
 
   unix)
