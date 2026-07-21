@@ -140,7 +140,7 @@ class SolveKnapsack(TableFunctionGenerator[SolveKnapsackArgs]):
                 "dimensions** (multi-dimensional 0/1 knapsack).\n\n"
                 "**Inputs.** `item_values` = `[v0, v1, ...]`; `weights` = `[[w0_d0, w0_d1, ...], ...]` (one "
                 "row per item, one column per capacity dimension); `capacities` = `[c_d0, c_d1, ...]`. "
-                "**Outputs.** One row per item with `chosen` (BOOLEAN) and `status`."
+                "**Outputs.** One row per item with `chosen` (`BOOLEAN`) and `status`."
             ),
             doc_md=(
                 "# solve_knapsack\n\n"

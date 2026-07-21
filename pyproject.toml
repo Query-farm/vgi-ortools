@@ -21,7 +21,7 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "vgi-python[http]>=0.14.0",
+    "vgi-python[http]>=0.16.0",
     # OR-Tools: the prebuilt CP-SAT / GLOP / PDLP / routing engines (~30 MB wheel,
     # the largest single dep in the fleet). Pinned to one minor so the container
     # size budget and behaviour are stable; pull no extras.
@@ -119,4 +119,10 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 # The ortools wheel ships partial / untyped stubs for the C++-backed modules.
 module = ["ortools.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# pyarrow's C++-backed extension modules are only partially typed and the wheel
+# ships no py.typed marker, so mypy --strict cannot analyze `import pyarrow`.
+module = ["pyarrow.*"]
 ignore_missing_imports = true

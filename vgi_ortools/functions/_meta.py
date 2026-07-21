@@ -124,6 +124,12 @@ def function_tags(
         "vgi.doc_md": _clean_doc_md(doc_md, source_url),
         "vgi.keywords": json.dumps(keywords),
         "vgi.executable_examples": json.dumps(executable_examples),
+        # Also surface the same runnable examples as the described-example carrier
+        # (VGI515): the native duckdb_functions().examples column that Meta.examples
+        # flows into is a bare VARCHAR[] of SQL strings and drops the per-example
+        # description, so the `vgi.example_queries` tag carries the descriptions and
+        # merges (deduped by SQL) with the native column.
+        "vgi.example_queries": json.dumps(executable_examples),
     }
     if result_schema is not None:
         tags["vgi.result_columns_schema"] = json.dumps(result_columns_schema(result_schema))

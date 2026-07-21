@@ -12,5 +12,16 @@
 [tool.vgi-lint-check]
 fail_on = "info"
 
+# VGI316 (a table function with a single multi-dimensional-array argument should
+# take a table input) is deliberately disabled for this worker. Every solver here
+# passes its whole problem as scalar integer LIST / matrix arguments, because a VGI
+# table function reserves its single subquery slot and most solvers need SEVERAL
+# matrices at once (min_cost_flow: arcs + supplies; solve_vrp: distance + demand),
+# which a lone table input cannot carry. The single-matrix solvers (assignment,
+# tsp, jobshop, knapsack, max_flow) share that same scalar-argument convention so
+# the surface stays consistent across the catalog. This is the load-bearing design
+# documented in CLAUDE.md, not an oversight.
+extend_ignore = ["VGI316"]
+
 [tool.vgi-lint-check.options]
 column_comment_min_ratio = 0.8

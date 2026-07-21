@@ -101,14 +101,33 @@ _CATALOG_KEYWORDS = [
     "duckdb",
 ]
 
-_SCHEMA_EXAMPLE_QUERIES = (
-    "SELECT worker, task, cost FROM ortools.main.solve_assignment("
-    "cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], "
-    "maximize := false) ORDER BY worker;\n"
-    "SELECT seq, node, arrival FROM ortools.main.solve_tsp("
-    "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0) "
-    "ORDER BY seq;\n"
-    "SELECT component, version FROM ortools.main.solver_info ORDER BY component;"
+_SCHEMA_EXAMPLE_QUERIES = json.dumps(
+    [
+        {
+            "description": (
+                "Least-cost assignment of three workers to three tasks (returns each "
+                "worker's chosen task and its cost)."
+            ),
+            "sql": (
+                "SELECT worker, task, cost FROM ortools.main.solve_assignment("
+                "cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],"
+                "[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], "
+                "maximize := false) ORDER BY worker"
+            ),
+        },
+        {
+            "description": "Optimal travelling-salesperson tour over a 5-node distance matrix, in visit order.",
+            "sql": (
+                "SELECT seq, node, arrival FROM ortools.main.solve_tsp("
+                "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], "
+                "start := 0) ORDER BY seq"
+            ),
+        },
+        {
+            "description": "List the bundled OR-Tools / solver component versions.",
+            "sql": "SELECT component, version FROM ortools.main.solver_info ORDER BY component",
+        },
+    ]
 )
 
 # Fixed analyst-suitability suite (`vgi-lint simulate` / VGI152 / VGI920). Each
@@ -377,8 +396,7 @@ _SCHEMA_TAGS = {
         "and introspection categories.\n\n"
         "Problems are passed as scalar integer list arguments built by `array_agg`, or -- for the "
         "general constraint solver -- as a versioned JSON model. Every solver returns a `status` column, "
-        "and an unsolved problem yields exactly one status row rather than an empty result. Browse the "
-        "categories or list the schema to find the specific solver for a problem."
+        "and an unsolved problem yields exactly one status row rather than an empty result."
     ),
     "vgi.doc_md": (
         "## OR-Tools Solvers\n\n"
