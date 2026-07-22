@@ -21,7 +21,5 @@ fail_on = "info"
 # tsp, jobshop, knapsack, max_flow) share that same scalar-argument convention so
 # the surface stays consistent across the catalog. This is the load-bearing design
 # documented in CLAUDE.md, not an oversight.
-extend_ignore = ["VGI316"]
+extend_ignore = [{ code = "VGI316", kind = "domain-exemption", reason = "every solver passes its whole problem as scalar LIST / matrix arguments: a VGI table function reserves its single subquery slot, and most solvers need SEVERAL matrices at once (min_cost_flow: arcs + supplies; solve_vrp: distance + demand), which a lone table input cannot carry" }]
 
-[tool.vgi-lint-check.options]
-column_comment_min_ratio = 0.8
