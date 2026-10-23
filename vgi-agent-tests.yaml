@@ -1,0 +1,46 @@
+# Private graders for `vgi-lint simulate` (VGI416). The worker publishes only
+# task names and prompts in vgi.agent_test_tasks; these canonical solutions and
+# grading options stay in the repo and are merged by task name.
+tasks:
+  - name: assignment_min_cost
+    reference_sql: "SELECT sum(cost) AS total_cost FROM ortools.main.solve_assignment(cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false)"
+    ignore_column_names: true
+  - name: max_flow_source_to_sink
+    reference_sql: "SELECT ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) AS max_flow"
+    ignore_column_names: true
+  - name: min_cost_flow_total
+    reference_sql: "SELECT sum(cost) AS total_cost FROM ortools.main.min_cost_flow(arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[2,3,15,1],[2,4,4,3],[3,4,20,2],[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[4,-20]]::BIGINT[][])"
+    ignore_column_names: true
+  - name: jobshop_makespan
+    reference_sql: "SELECT max(\"end\") AS makespan FROM ortools.main.solve_jobshop(tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][])"
+    ignore_column_names: true
+  - name: bin_packing_fewest_bins
+    reference_sql: "SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10)"
+    ignore_column_names: true
+  - name: tsp_tour_nodes
+    reference_sql: "SELECT count(DISTINCT node) AS visited FROM ortools.main.solve_tsp(distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0)"
+    ignore_column_names: true
+  - name: cpsat_items_selected
+    reference_sql: "SELECT sum(value) AS n_selected FROM ortools.main.solve_cpsat(model := '{\"version\":1,\"variables\":[{\"kind\":\"bool\",\"name\":\"a\"},{\"kind\":\"bool\",\"name\":\"b\"},{\"kind\":\"bool\",\"name\":\"c\"}],\"constraints\":[{\"type\":\"linear\",\"expr\":{\"sum\":[{\"coef\":5,\"var\":\"a\"},{\"coef\":10,\"var\":\"b\"},{\"coef\":15,\"var\":\"c\"}]},\"op\":\"<=\",\"rhs\":20}],\"objective\":{\"sense\":\"maximize\",\"terms\":[{\"coef\":10,\"var\":\"a\"},{\"coef\":20,\"var\":\"b\"},{\"coef\":30,\"var\":\"c\"}]}}')"
+    ignore_column_names: true
+  - name: vrp_vehicles_used
+    reference_sql: "SELECT count(DISTINCT route_id) AS vehicles_used FROM ortools.main.solve_vrp(distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, time_limit_s := 3.0)"
+    ignore_column_names: true
+  - name: rcpsp_makespan
+    reference_sql: "SELECT DISTINCT makespan FROM ortools.main.solve_rcpsp(tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0)"
+    ignore_column_names: true
+  - name: max_flow_arc_rows
+    reference_sql: "SELECT sum(flow) FILTER (WHERE \"from\" = 0) AS out_of_source FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)"
+    ignore_column_names: true
+  - name: knapsack_items_chosen
+    reference_sql: "SELECT count(*) FILTER (WHERE chosen) AS n_chosen FROM ortools.main.solve_knapsack(item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], capacities := [40]::BIGINT[])"
+    ignore_column_names: true
+  - name: bin_packing_bins_rollup
+    reference_sql: "SELECT count(*) AS bins FROM ortools.main.solve_bin_packing_bins(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)"
+    ignore_column_names: true
+  - name: solver_info_ortools_version
+    check_sql: "SELECT count(*) > 0 FROM ortools.main.solver_info WHERE component = 'ortools'"
+    success_criteria: "The answer reports an OR-Tools version string, obtained from the solver_info table's 'ortools' component row."
+  - name: last_solve_stats_reports_status
+    check_sql: "SELECT count(*) > 0 FROM ortools.main.last_solve_stats WHERE metric = 'status'"
+    success_criteria: "The answer reports the most recent solve's status (e.g. OPTIMAL), obtained from the last_solve_stats table's 'status' metric row."

@@ -132,10 +132,11 @@ _SCHEMA_EXAMPLE_QUERIES = json.dumps(
 
 # Fixed analyst-suitability suite (`vgi-lint simulate` / VGI152 / VGI920). Each
 # task has a single unambiguous numeric answer reachable through one solver call
-# plus a simple aggregate, so strict reference grading is sound; `reference_sql`
-# is grader-only (never shown to the analyst) and deterministic (single-threaded
-# solves with a fixed seed). Column names are aliased freely by the analyst, so
-# every task grades with `ignore_column_names`.
+# plus a simple aggregate, so strict reference grading is sound. Only each task's
+# `name` and `prompt` are published here (VGI416); the grader-only `reference_sql`
+# (deterministic: single-threaded solves with a fixed seed) and the
+# `ignore_column_names` option live in `vgi-agent-tests.yaml` at the repo root,
+# merged by task name.
 _AGENT_TEST_TASKS = [
     {
         "name": "assignment_min_cost",
@@ -146,12 +147,6 @@ _AGENT_TEST_TASKS = [
             "Assign every worker to exactly one task so the total cost is as small as possible, and "
             "return that minimum total cost as a single number."
         ),
-        "reference_sql": (
-            "SELECT sum(cost) AS total_cost FROM ortools.main.solve_assignment("
-            "cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],"
-            "[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "max_flow_source_to_sink",
@@ -160,11 +155,6 @@ _AGENT_TEST_TASKS = [
             "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]. What is the maximum flow that can be routed "
             "from node 0 to node 3? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT ortools.main.max_flow_value("
-            "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) AS max_flow"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "min_cost_flow_total",
@@ -174,12 +164,6 @@ _AGENT_TEST_TASKS = [
             "[4,2,5,3]], with node supplies [[0,20],[4,-20]], minimizing total cost. Return the minimum "
             "total cost as a single number."
         ),
-        "reference_sql": (
-            "SELECT sum(cost) AS total_cost FROM ortools.main.min_cost_flow("
-            "arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[2,3,15,1],[2,4,4,3],[3,4,20,2],"
-            "[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[4,-20]]::BIGINT[][])"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "jobshop_makespan",
@@ -188,11 +172,6 @@ _AGENT_TEST_TASKS = [
             "[[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]], minimizing the makespan (the finish time of the "
             "last operation). Return the optimal makespan as a single number."
         ),
-        "reference_sql": (
-            'SELECT max("end") AS makespan FROM ortools.main.solve_jobshop('
-            "tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][])"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "bin_packing_fewest_bins",
@@ -200,11 +179,6 @@ _AGENT_TEST_TASKS = [
             "Pack items of sizes [3,5,2,7,1,4] into bins that each hold at most 10. What is the fewest "
             "number of bins needed? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing("
-            "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "tsp_tour_nodes",
@@ -213,12 +187,6 @@ _AGENT_TEST_TASKS = [
             "distance matrix [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]. How many "
             "distinct locations does the computed optimal tour visit? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT count(DISTINCT node) AS visited FROM ortools.main.solve_tsp("
-            "distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], "
-            "start := 0)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "cpsat_items_selected",
@@ -232,15 +200,6 @@ _AGENT_TEST_TASKS = [
             '{"coef":30,"var":"c"}]}}\'. In the optimal solution, how many of the three booleans are '
             "set to 1? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT sum(value) AS n_selected FROM ortools.main.solve_cpsat(model := "
-            '\'{"version":1,"variables":[{"kind":"bool","name":"a"},{"kind":"bool","name":"b"},'
-            '{"kind":"bool","name":"c"}],"constraints":[{"type":"linear","expr":{"sum":[{"coef":5,'
-            '"var":"a"},{"coef":10,"var":"b"},{"coef":15,"var":"c"}]},"op":"<=","rhs":20}],'
-            '"objective":{"sense":"maximize","terms":[{"coef":10,"var":"a"},{"coef":20,"var":"b"},'
-            '{"coef":30,"var":"c"}]}}\')'
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "vrp_vehicles_used",
@@ -251,14 +210,6 @@ _AGENT_TEST_TASKS = [
             "and the [node, demand] pairs are [[1,1],[2,1],[3,1]]. In the optimal routing, how many "
             "vehicles are actually used? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT count(DISTINCT route_id) AS vehicles_used FROM ortools.main.solve_vrp("
-            "distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],"
-            "[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], "
-            "demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, "
-            "depot := 0, time_limit_s := 3.0)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "rcpsp_makespan",
@@ -268,12 +219,6 @@ _AGENT_TEST_TASKS = [
             "single renewable resource of capacity 2 ([[0,2]]), minimizing the makespan. Return the "
             "optimal makespan as a single number."
         ),
-        "reference_sql": (
-            "SELECT DISTINCT makespan FROM ortools.main.solve_rcpsp("
-            "tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], "
-            "precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "max_flow_arc_rows",
@@ -283,11 +228,6 @@ _AGENT_TEST_TASKS = [
             "compute the total flow that leaves the source node 0 when routing as much as possible from "
             "node 0 to node 3. Return a single number."
         ),
-        "reference_sql": (
-            'SELECT sum(flow) FILTER (WHERE "from" = 0) AS out_of_source FROM ortools.main.max_flow('
-            "arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "knapsack_items_chosen",
@@ -296,12 +236,6 @@ _AGENT_TEST_TASKS = [
             "[[5],[10],[15],[20],[25]], and a knapsack of capacity [40]. Choosing items to maximize "
             "total value without exceeding capacity, how many items are packed? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT count(*) FILTER (WHERE chosen) AS n_chosen FROM ortools.main.solve_knapsack("
-            "item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], "
-            "capacities := [40]::BIGINT[])"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "bin_packing_bins_rollup",
@@ -309,11 +243,6 @@ _AGENT_TEST_TASKS = [
             "Pack items of sizes [3,5,2,7,1,4] into bins of capacity 10. Using the per-bin rollup, how "
             "many bins end up holding at least one item? Return a single number."
         ),
-        "reference_sql": (
-            "SELECT count(*) AS bins FROM ortools.main.solve_bin_packing_bins("
-            "sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)"
-        ),
-        "ignore_column_names": True,
     },
     {
         "name": "solver_info_ortools_version",
@@ -321,11 +250,6 @@ _AGENT_TEST_TASKS = [
             "Which version of Google OR-Tools does this worker bundle? Find the version string it "
             "reports for its OR-Tools engine."
         ),
-        "success_criteria": (
-            "The answer reports an OR-Tools version string, obtained from the solver_info table's "
-            "'ortools' component row."
-        ),
-        "check_sql": "SELECT count(*) > 0 FROM ortools.main.solver_info WHERE component = 'ortools'",
     },
     {
         "name": "last_solve_stats_reports_status",
@@ -333,11 +257,6 @@ _AGENT_TEST_TASKS = [
             "Run any solve (for example a small assignment), then inspect the statistics of the most "
             "recent solve this worker handled and report that solve's status."
         ),
-        "success_criteria": (
-            "The answer reports the most recent solve's status (e.g. OPTIMAL), obtained from the "
-            "last_solve_stats table's 'status' metric row."
-        ),
-        "check_sql": "SELECT count(*) > 0 FROM ortools.main.last_solve_stats WHERE metric = 'status'",
     },
 ]
 
@@ -531,7 +450,7 @@ ORTOOLS_CATALOG = Catalog(
     tags=_CATALOG_TAGS,
     schemas=[
         Schema(
-            name="main",
+            path=["main"],
             comment="OR-Tools solvers: CP-SAT, routing, assignment, scheduling, flow, packing.",
             tags=_SCHEMA_TAGS,
             functions=list(ALL_FUNCTIONS),

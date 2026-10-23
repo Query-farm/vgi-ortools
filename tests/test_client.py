@@ -38,7 +38,9 @@ def _l(value: list) -> pa.Scalar:
 
 
 def _table(client: Client, name: str, named: dict) -> pa.Table:
-    batches = list(client.table_function(function_name=name, arguments=Arguments(positional=(), named=named)))
+    batches = list(
+        client.table_function(function_name=name, schema_path=["main"], arguments=Arguments(positional=(), named=named))
+    )
     return pa.Table.from_batches(batches)
 
 
@@ -167,6 +169,7 @@ def test_max_flow_value_scalar_over_rpc(client: Client) -> None:
     out = list(
         client.scalar_function(
             function_name="max_flow_value",
+            schema_path=["main"],
             input=iter([batch]),
             arguments=Arguments(positional=(pa.scalar(0, type=pa.int64()), pa.scalar(3, type=pa.int64())), named={}),
         )
