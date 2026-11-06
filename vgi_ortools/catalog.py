@@ -13,13 +13,33 @@ from __future__ import annotations
 import json
 
 import pyarrow as pa
-from vgi.catalog import Catalog, Schema, Table
+from vgi.catalog import Catalog, ConstraintInfo, Schema, Table, constraint_record
 
 from . import DIALECT_VERSION, __version__
 from .functions import ALL_FUNCTIONS
 from .functions.info_fn import INFO_SCHEMA, STATS_SCHEMA, LastSolveStats, SolverInfo
 
 SOURCE_URL = "https://github.com/Query-farm/vgi-ortools"
+
+
+def _trusted(table: str, constraint_id: str, kind: str, columns: list[list[str]]) -> ConstraintInfo:
+    """Build an ENFORCED + ALL_ROWS constraint record on a ``main``-schema table.
+
+    DuckDB only reads trusted records, so declare one only when every row the
+    table can return satisfies it.
+
+    Args:
+        table: Table name.
+        constraint_id: Identifier unique within the table.
+        kind: ``"PRIMARY_KEY"``, ``"UNIQUE"`` or ``"NOT_NULL"``.
+        columns: Column paths the constraint covers (e.g. ``[["component"]]``).
+
+    Returns:
+        The canonical constraint record.
+    """
+    return constraint_record(
+        ["main"], table, constraint_id, kind, columns, enforcement="ENFORCED", validation="ALL_ROWS"
+    )
 
 
 def _column_comments(schema: pa.Schema) -> dict[str, str]:
@@ -461,8 +481,10 @@ ORTOOLS_CATALOG = Catalog(
                     comment="Bundled OR-Tools / worker / dialect versions, one row per component (no arguments).",
                     column_comments=_column_comments(INFO_SCHEMA),
                     # One row per component name; both columns are always populated.
-                    not_null=("component", "version"),
-                    primary_key=(("component",),),
+                    constraints=(
+                        _trusted("solver_info", "pk", "PRIMARY_KEY", [["component"]]),
+                        _trusted("solver_info", "version_not_null", "NOT_NULL", [["version"]]),
+                    ),
                     cardinality_estimate=6,
                     cardinality_max=64,
                     tags=_SOLVER_INFO_TABLE_TAGS,
@@ -476,8 +498,7 @@ ORTOOLS_CATALOG = Catalog(
                     ),
                     column_comments=_column_comments(STATS_SCHEMA),
                     # One row per metric name (the value may be NULL until the first solve).
-                    not_null=("metric",),
-                    primary_key=(("metric",),),
+                    constraints=(_trusted("last_solve_stats", "pk", "PRIMARY_KEY", [["metric"]]),),
                     cardinality_estimate=8,
                     cardinality_max=64,
                     tags=_LAST_SOLVE_STATS_TABLE_TAGS,

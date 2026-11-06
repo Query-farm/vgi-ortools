@@ -121,8 +121,8 @@ uv run --no-sync ruff check .
 uv run --no-sync mypy vgi_ortools/
 uv run --no-sync pydoclint --config pyproject.toml vgi_ortools/
 uv run --no-sync pytest -q
-make test-sql            # haybarn sqllogictest E2E (needs the vgi community extension)
-# vgi-lint at --fail-on info (Query-farm/vgi-lint-check@v1 in CI)
+make test-sql            # haybarn 2.0 sqllogictest E2E (needs the vgi community extension, protocol vgi.v3 / 3.1)
+# vgi-lint at --fail-on info (Query-farm/vgi-lint-check@v2 in CI)
 ```
 
 ## Tests

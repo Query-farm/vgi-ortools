@@ -8,7 +8,7 @@ statement ok
 LOAD vgi;
 
 statement ok
-ATTACH 'ortools' AS opt (TYPE vgi, LOCATION '${VGI_ORTOOLS_WORKER}');
+ATTACH 'ortools' AS opt (TYPE vgi, LOCATION '{VGI_ORTOOLS_WORKER}');
 
 # ---- solver_info reports the bundled solver + worker versions ----
 query I
