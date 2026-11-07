@@ -19,6 +19,40 @@ predictive ML workers (`predict` / `xgboost` / `lightgbm`) that say what will
 happen — and the in-engine capability the `highs` community extension (LP / MIP)
 stops short of: **constraint programming, routing, and scheduling**.
 
+## Quick start
+
+The worker isn't on PyPI; [uv](https://docs.astral.sh/uv/) runs it straight from a tagged release on GitHub. `uvx` builds an isolated environment on the first ATTACH and reuses it afterwards:
+
+```sql
+INSTALL vgi FROM community;
+LOAD vgi;
+
+ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.2.0 vgi-ortools');
+
+-- Least-cost assignment of three workers to three tasks (returns each worker's chosen
+-- task and its cost).
+SELECT worker, task, cost FROM ortools.main.solve_assignment(cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false) ORDER BY worker;
+
+-- Optimal travelling-salesperson tour over a 5-node distance matrix, in visit order.
+SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0) ORDER BY seq;
+```
+
+Change `@v0.2.0` to move to a newer release.
+
+### Other ways to run it
+
+- **Docker** (the image bundles the worker and its dependencies):
+
+  ```sql
+  ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-ortools:0.2.0');
+  ```
+
+- **From a local checkout** (`git clone https://github.com/Query-farm/vgi-ortools`), point `LOCATION` at `uv run --project /path/to/vgi-ortools vgi-ortools`.
+
+### Build from source
+
+To build the worker yourself, see [Development](#development).
+
 ## Why this exists (honest framing)
 
 The defensibility is exactly the thing DuckDB cannot do natively and the thing
@@ -41,8 +75,8 @@ the box.
 ```sql
 INSTALL vgi FROM community;
 LOAD vgi;
--- worker binary resolved from the vgi community extension; no secrets needed (offline compute)
-ATTACH 'vgi:ortools' AS opt;
+-- no secrets needed (offline compute)
+ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.2.0 vgi-ortools');
 
 -- 1) Linear assignment: 3 workers to 3 tasks, minimize cost
 SELECT worker, task, cost FROM opt.solve_assignment(
@@ -244,7 +278,7 @@ doubles.)
 - Before building a model the worker guards problem size: `max_nodes` (routing,
   2000), `max_vars` / `max_constraints` (CP-SAT, 100k / 200k), `max_arcs`
   (flow). Exceeding a guard is a clean error naming the limit, not an OOM. Raise
-  any of them per ATTACH, e.g. `ATTACH 'vgi:ortools' AS opt (max_nodes '5000')`.
+  any of them per ATTACH, e.g. `ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.2.0 vgi-ortools', max_nodes '5000')`.
 - **Determinism.** CP-SAT runs single-threaded by default (`num_workers := 0`)
   with a fixed `random_seed`, so the objective *and* the assignment are
   reproducible. Pass `num_workers := 8` to opt into parallel search (faster, but
@@ -258,7 +292,7 @@ proxy never prompts for a credential) and **no externalized scan-state** (the
 proxy never tries to serialize/resume a cursor). Each table-function call is a
 single self-contained solve.
 
-## Install / run
+## Development
 
 ```sh
 uv sync --extra dev          # install the worker + dev tools
@@ -267,7 +301,7 @@ make test-sql                # haybarn sqllogictest E2E over the vgi extension
 ```
 
 The worker ships the `vgi-ortools` (stdio) and `vgi-ortools-http` (HTTP) console
-scripts; DuckDB spawns the stdio one after `ATTACH 'vgi:ortools'`.
+scripts; DuckDB spawns the stdio one when an `ATTACH` `LOCATION` names it (see [Quick start](#quick-start)).
 
 ## Dependencies & licensing
 
