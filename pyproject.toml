@@ -1,6 +1,6 @@
 [project]
 name = "vgi-ortools"
-version = "0.1.0"
+version = "0.2.0"
 description = "A VGI (Vector Gateway Interface) worker exposing Google OR-Tools (CP-SAT, routing/VRP, assignment, scheduling, flow, packing) as DuckDB/SQL functions"
 readme = "README.md"
 license = "MIT"
