@@ -12,7 +12,7 @@ network calls: every solve is pure local CPU next to the data.
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 # The solve_cpsat JSON model dialect version. Bumped only on a breaking change to
 # the dialect grammar (see vgi_ortools/models/cpsat.py and README section A).
