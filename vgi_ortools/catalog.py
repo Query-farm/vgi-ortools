@@ -281,7 +281,11 @@ _AGENT_TEST_TASKS = [
 ]
 
 _CATALOG_TAGS = {
-    "vgi.title": "Optimization & Constraint Solving (OR-Tools)",
+    "vgi.title": "OR-Tools Optimization",
+    "vgi.subtitle": (
+        "Compute optimal assignments, vehicle routes, schedules, network flows and packings, "
+        "or solve constraint models, with Google OR-Tools."
+    ),
     "vgi.keywords": json.dumps(_CATALOG_KEYWORDS),
     "vgi.doc_llm": _CATALOG_DESCRIPTION_LLM,
     "vgi.doc_md": _CATALOG_DESCRIPTION_MD,
@@ -371,7 +375,7 @@ _SCHEMA_TAGS = {
 # on this worker process -- both scan with no arguments, no network, no secret.
 # ---------------------------------------------------------------------------
 _SOLVER_INFO_TABLE_TAGS = {
-    "vgi.title": "Solver / Worker Versions",
+    "vgi.title": "Solver Versions",
     "vgi.category": "Introspection",
     "vgi.keywords": json.dumps(["solver info", "version", "ortools version", "diagnostics", "introspection", "cp-sat"]),
     "vgi.doc_llm": (
