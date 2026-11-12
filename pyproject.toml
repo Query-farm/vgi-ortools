@@ -1,6 +1,6 @@
 [project]
 name = "vgi-ortools"
-version = "0.3.0"
+version = "0.4.0"
 description = "A VGI (Vector Gateway Interface) worker exposing Google OR-Tools (CP-SAT, routing/VRP, assignment, scheduling, flow, packing) as DuckDB/SQL functions"
 readme = "README.md"
 license = "MIT"
@@ -21,7 +21,7 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "vgi-python[http]>=0.50.0",
+    "vgi-python[http]>=0.51.0",
     # OR-Tools: the prebuilt CP-SAT / GLOP / PDLP / routing engines (~30 MB wheel,
     # the largest single dep in the fleet). Pinned to one minor so the container
     # size budget and behaviour are stable; pull no extras.
@@ -74,7 +74,7 @@ dev = [
 # `vgi-python[http]` dep already pulls waitress + pyarrow, so a plain
 # `pip install vgi-ortools` for an on-host stdio worker stays lean while the
 # published container installs `.[serve]` for the HTTP server.
-serve = ["vgi-python[http]>=0.50.0"]
+serve = ["vgi-python[http]>=0.51.0"]
 dev = [
     "pytest",
     "pyarrow",
