@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "catalogs": {
+    "released": {
+      "path": "coverage/catalog-released.json",
+      "sha256": "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "catalog_sha256": "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+        "notes": "Actual unfiltered worker-specific duckdb_functions/tables/views exports reconcile to 14 names, including all solver families and process-statistics table. Metadata-only source differences reviewed at release-to-current.diff; no capabilities excluded."
+      }
+    },
+    "current": {
+      "path": "coverage/catalog-current.json",
+      "sha256": "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34",
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "catalog_sha256": "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34",
+        "notes": "Actual unfiltered worker-specific duckdb_functions/tables/views exports reconcile to 14 names, including all solver families and process-statistics table. Metadata-only source differences reviewed at release-to-current.diff; no capabilities excluded."
+      }
+    }
+  },
+  "notebooks": [
+    {
+      "path": "01_workload_is_not_completion.ipynb",
+      "sha256": "bcaabb1deeccb1de909fca368b85841db12745e4f0a7b2bcbb037ee562ab9cb6",
+      "execution": {
+        "path": "coverage/run-01.json",
+        "sha256": "833af8957b61d08a4237613eedeff1cbb5466bf210ab3b2ca0959aca3055bf3e"
+      }
+    },
+    {
+      "path": "02_shipping_cost_and_capacity.ipynb",
+      "sha256": "96af0b553ee42fb8a3ca940193436ee72c298aab9dd5ac639b7f70e12e981b33",
+      "execution": {
+        "path": "coverage/run-02.json",
+        "sha256": "ec37780e959b276723035d67122e11842838c75cd7c4c8c24b8cf83134d5fb44"
+      }
+    },
+    {
+      "path": "03_selecting_is_not_packing_everything.ipynb",
+      "sha256": "bbc3fe720515bdc3ca5613d5e80e1f0f9defa42783c665cac7384304f8f5ff89",
+      "execution": {
+        "path": "coverage/run-03.json",
+        "sha256": "e7108ee4d01c6e3ff17a038f8eb83c86a849aa4f8e658e4c4c7a593a20ef46bb"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "object": {
+        "schema": "main",
+        "name": "solver_info"
+      },
+      "notebook": "01_workload_is_not_completion.ipynb",
+      "sql": [
+        {
+          "cell": "685972bb",
+          "reference": "ortools.main.solver_info"
+        }
+      ],
+      "narrative_cells": [
+        "4a269daa"
+      ],
+      "result_cells": [
+        "685972bb"
+      ],
+      "interpretation_cells": [
+        "4a269daa"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "bcaabb1deeccb1de909fca368b85841db12745e4f0a7b2bcbb037ee562ab9cb6",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Record the actual solver and dialect versions before interpreting deterministic CP-SAT schedules.",
+        "finding": "OR-Tools 9.15.6755 and dialect 1 qualify the release-pinned result; CP-SAT status is distinguished from routing heuristic status."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "solve_jobshop"
+      },
+      "notebook": "01_workload_is_not_completion.ipynb",
+      "sql": [
+        {
+          "cell": "6ed090e6",
+          "reference": "ortools.main.solve_jobshop"
+        }
+      ],
+      "narrative_cells": [
+        "33b1f299"
+      ],
+      "result_cells": [
+        "c1fd92c1"
+      ],
+      "interpretation_cells": [
+        "c1fd92c1"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "bcaabb1deeccb1de909fca368b85841db12745e4f0a7b2bcbb037ee562ab9cb6",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Test whether the simple machine/job lower bound is attainable under precedence and exclusivity.",
+        "finding": "OPTIMAL 11-minute schedule exceeds10-minute simple bound; six model invariants pass and10-minute horizon is infeasible. Parameter experiment re-optimizes one changed duration."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "min_cost_flow"
+      },
+      "notebook": "02_shipping_cost_and_capacity.ipynb",
+      "sql": [
+        {
+          "cell": "cost-solve",
+          "reference": "ortools.main.min_cost_flow"
+        }
+      ],
+      "narrative_cells": [
+        "cost-question"
+      ],
+      "result_cells": [
+        "cost-finding"
+      ],
+      "interpretation_cells": [
+        "cost-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "96af0b553ee42fb8a3ca940193436ee72c298aab9dd5ac639b7f70e12e981b33",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Find the least cost of a specified crate demand while preserving the distinction between unused arcs and absent solution data.",
+        "finding": "12-crate shipment costs68 CU; positive-flow rows reconcile to full arcs with explicit zero-flow semantics and conservation;18 crates is infeasible."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "max_flow"
+      },
+      "notebook": "02_shipping_cost_and_capacity.ipynb",
+      "sql": [
+        {
+          "cell": "capacity-solve",
+          "reference": "ortools.main.max_flow"
+        }
+      ],
+      "narrative_cells": [
+        "capacity-question"
+      ],
+      "result_cells": [
+        "capacity-finding"
+      ],
+      "interpretation_cells": [
+        "capacity-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "96af0b553ee42fb8a3ca940193436ee72c298aab9dd5ac639b7f70e12e981b33",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Independently route maximum feasible throughput on the same network without the cost objective.",
+        "finding": "17-crate routed throughput is less than 18 outgoing-source capacity; per-arc routing and conservation explain why a cheap shipment is a different problem."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "max_flow_value"
+      },
+      "notebook": "02_shipping_cost_and_capacity.ipynb",
+      "sql": [
+        {
+          "cell": "capacity-solve",
+          "reference": "ortools.main.max_flow_value"
+        }
+      ],
+      "narrative_cells": [
+        "capacity-question"
+      ],
+      "result_cells": [
+        "capacity-finding"
+      ],
+      "interpretation_cells": [
+        "capacity-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "96af0b553ee42fb8a3ca940193436ee72c298aab9dd5ac639b7f70e12e981b33",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Reconcile the scalar throughput shortcut with the detailed flow and derive shipment headroom.",
+        "finding": "Scalar and routed throughput both equal 17; default demand 12 leaves 5 crates of headroom, which becomes 0 at the documented17-crate experiment."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "solve_knapsack"
+      },
+      "notebook": "03_selecting_is_not_packing_everything.ipynb",
+      "sql": [
+        {
+          "cell": "knapsack-solve",
+          "reference": "ortools.main.solve_knapsack"
+        }
+      ],
+      "narrative_cells": [
+        "knapsack-question"
+      ],
+      "result_cells": [
+        "selection-finding"
+      ],
+      "interpretation_cells": [
+        "selection-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "bbc3fe720515bdc3ca5613d5e80e1f0f9defa42783c665cac7384304f8f5ff89",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Choose a priority-maximizing subset of six indivisible items for one mass-constrained container.",
+        "finding": "Selected A, C, E, F use 10 kg and score 23; SQL independently enumerates 64 subsets to verify optimal score. Selected count is not the objective."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "solve_bin_packing"
+      },
+      "notebook": "03_selecting_is_not_packing_everything.ipynb",
+      "sql": [
+        {
+          "cell": "packing-solve",
+          "reference": "ortools.main.solve_bin_packing"
+        }
+      ],
+      "narrative_cells": [
+        "packing-question"
+      ],
+      "result_cells": [
+        "packing-finding"
+      ],
+      "interpretation_cells": [
+        "packing-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T21:52:42.903200+00:00",
+        "notebook_sha256": "bbc3fe720515bdc3ca5613d5e80e1f0f9defa42783c665cac7384304f8f5ff89",
+        "catalog_sha256": [
+          "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+          "5693b0433d5ecdef07a33dc0230022779f50209c2d8fb11c2e16731de4b33a34"
+        ],
+        "purpose": "Pack every fixed item into the fewest capacity-limited containers and contrast that objective with subset selection.",
+        "finding": "All 6 items / 22 kg use 3 containers at 10 kg capacity; conservation, unique item assignment and per-container bounds pass.12 kg experiment reduces the all-item bin count while the selected score rises; tied best-score subsets need not have the same item count."
+      }
+    }
+  ]
+}

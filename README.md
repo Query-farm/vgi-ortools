@@ -19,7 +19,7 @@ predictive ML workers (`predict` / `xgboost` / `lightgbm`) that say what will
 happen — and the in-engine capability the `highs` community extension (LP / MIP)
 stops short of: **constraint programming, routing, and scheduling**.
 
-Explore the [executed job-shop scheduling notebook](notebooks/README.md) for workload bounds, a Gantt schedule, and a duration experiment.
+Explore the [executed optimization notebooks](notebooks/README.md) for job-shop scheduling, shipment cost versus network capacity, and subset selection versus all-item packing.
 
 ## Quick start
 

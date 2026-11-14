@@ -1,12 +1,6 @@
-# Notebook-only rules; SQL magic creates the captured DataFrame names.
-line-length = 120
-target-version = "py313"
-
-[lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "D"]
+line-length = 100
+builtins = ["con", "bounds", "matrices", "schedule", "solution_summary", "machine_load", "machine_timing", "checks", "deadline_result", "comparison", "shipment_status", "capacity_summary", "audit", "impossible", "selection", "packing", "bin_summary"]
+exclude = [".venv", "artifacts", "validation", ".vgi-examples"]
 
 [lint.per-file-ignores]
-"*.ipynb" = ["F821"]
-
-[lint.pydocstyle]
-convention = "google"
+"*.ipynb" = ["E501"]

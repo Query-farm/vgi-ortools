@@ -1,94 +1,69 @@
-# OR-Tools notebooks
+# OR-Tools optimization notebooks
 
-[01 · Workload is not a completion time](01_workload_is_not_completion.ipynb)
-asks why ten minutes of work on the busiest machine does not guarantee a
-ten-minute batch. Visible SQL builds a job-shop matrix, derives lower bounds,
-solves through the real VGI worker, validates precedence and machine capacity,
-and tests a tighter deadline. Two embedded charts show workloads and the actual
-Gantt schedule. The final experiment changes one operation's duration.
+Three independent, executed investigations use the real released OR-Tools worker through visible Haybarn/VGI SQL:
 
-## Setup and execution
+| Notebook | Question | One-parameter experiment |
+|---|---|---|
+| [01 · Workload is not a completion time](01_workload_is_not_completion.ipynb) | Why can a batch outlast the busiest machine's workload? | A's first operation: 3 → 6 minutes |
+| [02 · Shipping cost and capacity](02_shipping_cost_and_capacity.ipynb) | What does a requested shipment cost, and how much more can the network carry? | Requested shipment: 12 → 17 crates |
+| [03 · Selecting is not packing everything](03_selecting_is_not_packing_everything.ipynb) | How does selecting one valuable subset differ from packing every item? | Container capacity: 10 → 12 kg |
 
-With Git and [uv](https://docs.astral.sh/uv/) on PATH, copy/download `notebooks/`
-with its companion files and run **inside that directory**:
+The notebooks contain synthetic, explicitly modeled problems, not production observations. All optimizer calls are visible SQL. Python configures the connection, transfers SQL-created scalar input lists, and presents returned results. Each story has two SVG figures, interpreted tables, and invariants or independent reconciliations.
+
+## Run locally or in Colab
+
+Use the **Open in Colab** link at the top of a notebook, or download only the `.ipynb` file and run it in a fresh compatible notebook kernel. The bootstrap installs the shared **base** package from [v0.3.23](https://github.com/Query-farm/vgi-example-notebooks/tree/v0.3.23), preserving supported preinstalled pandas/Matplotlib/IPython versions. No worker source tree or helper files are required. If an older shared module was already imported, restart after installation.
+
+For a locked local run, copy `notebooks/`, install [uv](https://docs.astral.sh/uv/) and Git, then run **inside that directory**:
 
 ```sh
 uv sync --locked
-uv run --locked python execute.py
+uv run --locked vgi-notebooks
 ```
 
-No worker checkout, root environment or local worker build is required. The
-independent notebook environment supports Python 3.13–3.14 and pins published
-Haybarn 2.0.0rc11. The visible ATTACH uses this literal launcher:
+Select this directory's `.venv/bin/python` as the interactive kernel with `notebooks/` as its working directory. The local environment installs the shared `[runner]` extra; the Colab bootstrap installs only base dependencies. No global kernel registration is required. Published Haybarn **2.0.0rc11** runs the real community VGI extension. The shared connection creates an empty temporary SQL secret directory and disables persistent secrets.
+
+Every notebook shows this literal released launch in its `INSTALL` / `LOAD` / `ATTACH` cell:
 
 ```text
-uvx --python 3.13 --with vgi-python==0.51.1 --from git+https://github.com/Query-farm/vgi-ortools@4f2e5c6715c50ca86038a1e868dc9437b7e30c3a vgi-ortools
+uvx --python 3.13 --from git+https://github.com/Query-farm/vgi-ortools@v0.4.0 vgi-ortools
 ```
 
-This full Git revision is the published **v0.4.0** release. Its assets are Python
-packages, not platform binaries for `github-auto`. `uvx` downloads and caches the
-worker separately, using Python 3.13 and an explicitly pinned compatible SDK.
-Initial package, Git and extension downloads need internet access. The optimization
-is local deterministic CPU work. Worker transitive dependencies follow the release's
-constraints; OR-Tools remains within its pinned 9.15 minor range. To upgrade, change
-the literal revision/SDK pin and rerun both parameter cases before adopting it.
+[v0.4.0](https://github.com/Query-farm/vgi-ortools/tree/v0.4.0) resolves to source commit `4f2e5c6715c50ca86038a1e868dc9437b7e30c3a`. The worker uses its own managed Python 3.13 environment, separate from the notebook kernel. Its release dependencies work without an additional SDK override. First-time Git/package/extension downloads require network access. Solving then runs locally without credentials or outbound API calls.
 
-Select this directory's `.venv/bin/python` as the interactive kernel, with this
-directory as kernel cwd. No global kernel registration is needed. The headless
-runner starts a fresh kernel using its own interpreter and notebook-directory cwd.
-Parameters and analytical/connection SQL stay visible. Imports, plotting, derived
-prose and cleanup are folded; editors can retain their own folding state.
+The notebook dependencies are locked independently of the repository's root environment. The release's worker dependencies retain their declared constraints, including OR-Tools `>=9.15,<9.16`; `solver_info` records **9.15.6755** in the validated runs. The worker source pin does not freeze every transitive package. To upgrade, change the literal release tag and rerun the default, experiment, and catalog checks before relying on changed outputs.
 
-## One-parameter experiment
-
-Change `A_CUT_MINUTES` from 3 to 6 and restart/run all, or save a separate copy:
+## Save parameter experiments separately
 
 ```sh
-uv run --locked python execute.py \
-  --parameters '{"A_CUT_MINUTES": 6}' \
-  --output-dir validation/a-cut-6
+uv run --locked vgi-notebooks 01_workload_is_not_completion.ipynb \
+  --parameters '{"A_CUT_MINUTES":6}' --output-dir artifacts/a-cut-6
+uv run --locked vgi-notebooks 02_shipping_cost_and_capacity.ipynb \
+  --parameters '{"SHIP_UNITS":17}' --output-dir artifacts/shipment-17
+uv run --locked vgi-notebooks 03_selecting_is_not_packing_everything.ipynb \
+  --parameters '{"CAPACITY_KG":12}' --output-dir artifacts/capacity-12
 ```
 
-The runner rejects unknown parameters and overrides without a separate output
-directory. It writes only after a successful full execution, preserving the last
-successful notebook on failure. Experiment copies include branding, helper, runner, documentation and environment
-companions. `validation/` holds ignored logs, chart images and experiment
-copies; the main notebook retains its embedded outputs. The notebook directory and its companions are sufficient to rerun the examples.
+The runner rejects overrides without a distinct output directory and writes notebooks only after full success. Experiments leave saved defaults intact. Parameter domains are checked before ATTACH. The runner adds experiment documentation/branding and writes review artifacts under ignored `artifacts/`; saved default SVG links remain readable on GitHub.
 
-The selected duration accepts integers 1–10 minutes. The reference solve keeps
-A0 at 3 minutes; the comparison table derives the change from the two returned
-solutions. The saved default proves an 11-minute makespan; the 6-minute experiment
-proves 12 minutes despite adding 3 minutes of processing. Both simple bounds are
-10 minutes. This illustrates re-optimization, not a general sensitivity formula.
+- The job-shop comparison holds seven operation durations fixed and changes only A0. Compare the makespan, simple bound and machine ordering; multiple equally optimal schedules can exist.
+- The shipping experiment fixes every arc capacity and unit cost. Compare the selected cost and flow allocation; maximum capacity and the over-capacity infeasibility diagnostic stay fixed.
+- The packing experiment fixes all six item masses and scores. Compare selected labels/score with all-item bin count; raw bin IDs are labels, not physical container identities.
 
 ## Provenance and model limits
 
-Eight synthetic operations reproduce the small `_JOBSHOP` fixture in
-[`tests/test_models.py`](https://github.com/Query-farm/vgi-ortools/blob/4f2e5c6715c50ca86038a1e868dc9437b7e30c3a/tests/test_models.py); job letters, machine labels and
-minute units are illustrative. This is not factory telemetry or a benchmark of
-real production throughput. No optimizer is called directly from notebook Python:
-all three solves use `ortools.main.solve_jobshop` through Haybarn/VGI.
+The job-shop story preserves the original eight-operation example from the released [test fixture](https://github.com/Query-farm/vgi-ortools/blob/v0.4.0/tests/test_models.py). All jobs release at elapsed minute zero; operations are non-preemptive, each job follows task order, and each machine handles one operation at a time. Intervals are half-open `[start,end)`, with one integer tick per minute. Setup, transfer, staffing, breakdown, shift and due-date constraints are absent. CP-SAT uses a fixed seed, its single-threaded default, and a five-second cap. `OPTIMAL` proves the minimum; `FEASIBLE` is only an incumbent. The tighter-horizon call preserves the worker's single NULL-data status row when there is no solution.
 
-All jobs release at elapsed minute zero. Operations run non-preemptively in task
-index order; each machine handles at most one operation at a time. Machines are
-always available. Setup, transfer, staffing, breakdown, shift and due-date
-constraints are omitted. A makespan objective minimizes the last finish time,
-not total job delay or machine idle time. The schedule is not necessarily unique.
+The shipping story uses an authored five-arc network matching the current repository's composed flow example, with explicit crate and illustrative cost-unit labels. The published release exposes the same solver behavior; changes since the release are metadata/example changes. Supply and demand balance, every arc is directed, and crate capacities apply per planning period. Arc costs apply per traversed arc. There are no losses, transit times or fixed charges. Positive-flow-only outputs are left-joined to known arcs only after a successful status check. Saturation alone is not a bottleneck-expansion proof.
 
-Durations are integer minutes, with one solver tick per minute and half-open
-`[start, end)` intervals. Subminute inputs need a documented common integer scale
-before solving. The main horizon is the sum of durations; the diagnostic solve
-uses the returned makespan minus one. CP-SAT stays single-threaded using the
-worker's default (parallel CP-SAT is known to hang on this macOS host), a seed of
-1, and a 5-second solve cap. `OPTIMAL` is a CP-SAT proof; `FEASIBLE` is an incumbent
-without such proof. No routing-library status interpretation is used.
+The packing story authors six indivisible items with integer kilogram masses and additive priority points. Knapsack maximizes score in one container; bin packing includes every item and minimizes container count. The notebook independently enumerates all 64 subsets in SQL to reconcile the knapsack score. This is mass-only capacity, not geometric or operational loading advice.
 
-Ordinary in-memory tables survive JupySQL's separate cursors; session variables
-do not. The notebook serializes each SQL-built integer matrix as JSON list text
-and transfers that scalar to the visible solver call through JupySQL interpolation.
-SQL handles domain
-calculations and checks; Python only configures the connection, formats prose and
-renders charts with Seaborn/Matplotlib. The connection closes after the experiment.
-The official Strata Sun + Query.Farm and VGI assets are copied unchanged from the
-approved perps examples, originally from the Query.Farm media kit. The linked
-Strata Sun appears at the top and final bottom.
+All scalar matrices are assembled in SQL, serialized as integer list text, then passed to visible function calls. This works with JupySQL's separate cursors and the worker's constant table-function arguments. Worker calls are materialized before DataFrame captures to avoid repeating a solve merely to display its results. Last-process solve metrics are not used as authoritative query diagnostics; explicit returned statuses and modeled invariants are.
+
+## Catalog coverage and validation
+
+[coverage.json](coverage.json) maps **7 of 14 distinct named surfaces** in both actual released and current runtime catalogs to visible executed SQL, results and interpretation. Complete functions/tables/views exports, explicit reviews and execution receipts are under [coverage/](coverage/). Overloads and aliases count once; no authentication/write capability is excluded. The unrepresented assignment, general CP-SAT, RCPSP, TSP, VRP, bin-rollup and process-statistics surfaces remain explicitly uncovered. Release execution is reported separately from current-main runtime execution.
+
+Validation includes all three defaults and parameter experiments, six default and six experimental chart inspections, a fresh notebook-only preloaded compatible kernel for this shared launcher path, runner/parameter guards, Ruff/format and notebook structure checks. Hosted Colab itself was not manually exercised. Existing green [source CI at baseline main](https://github.com/Query-farm/vgi-ortools/actions/runs/43561107269) is reused; worker source and root locks are unchanged, and no worker build or redundant source suite was run.
+
+The proper catalog title, linked repository heading, official unchanged Strata Sun at top/final bottom, VGI logo and SVG chart presentation come from the shared package. Parameters and SQL remain visible; imports, plotting and cleanup are folded.

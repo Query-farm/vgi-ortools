@@ -1,0 +1,631 @@
+{
+  "query": "SELECT * FROM duckdb_functions() WHERE database_name='ortools' ORDER BY schema_name,function_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "function_name",
+    "alias_of",
+    "function_type",
+    "description",
+    "comment",
+    "tags",
+    "return_type",
+    "parameters",
+    "parameter_types",
+    "varargs",
+    "macro_definition",
+    "has_side_effects",
+    "internal",
+    "extension_name",
+    "function_oid",
+    "examples",
+    "stability",
+    "categories"
+  ],
+  "rows": [
+    [
+      "ortools",
+      "22592",
+      "main",
+      "max_flow",
+      null,
+      "table",
+      "Maximum flow from a source to a sink over a capacitated network. Backed by OR-Tools SimpleMaxFlow. Returns one row per arc with positive flow; see max_flow_value for the scalar total.",
+      null,
+      {
+        "vgi.category": "Network Flow",
+        "vgi.doc_llm": "## `max_flow`\n\nCompute the **maximum flow** that can be pushed from `source` to `sink` over a capacitated network (the max-flow / min-cut value).\n\n**Inputs.** `arcs` = `[from, to, capacity]` integer arcs; `source` and `sink` node ids. **Outputs.** One row per arc with positive flow: `from`, `to`, `flow`, `status`. Use the scalar `max_flow_value(arcs, source, sink)` when you only need the total.",
+        "vgi.doc_md": "# max_flow\n\nMaximum flow from `source` to `sink` over a capacitated network.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/flow/maxflow)",
+        "vgi.example_queries": "[{\"description\": \"Max flow from node 0 to node 3 (value 30).\", \"sql\": \"SELECT sum(flow) FILTER (WHERE \\\"from\\\" = 0) AS out_of_source FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)\"}, {\"description\": \"Arc criticality: for each arc carrying flow in the 0->3 max-flow solution, re-solve with that arc removed (max_flow_value) and report the throughput lost. Losing arc 2->3 drops the max flow from 30 to 10; each of the other flow-carrying arcs costs 10.\", \"sql\": \"SELECT f.\\\"from\\\", f.\\\"to\\\", f.flow, ortools.main.max_flow_value(list_filter([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], lambda a: NOT (a[1] = f.\\\"from\\\" AND a[2] = f.\\\"to\\\")), 0, 3) AS flow_without_arc, ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) - flow_without_arc AS flow_lost FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3) AS f ORDER BY flow_lost DESC, f.\\\"from\\\", f.\\\"to\\\"\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Max flow from node 0 to node 3 (value 30).\", \"sql\": \"SELECT sum(flow) FILTER (WHERE \\\"from\\\" = 0) AS out_of_source FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)\"}, {\"description\": \"Arc criticality: for each arc carrying flow in the 0->3 max-flow solution, re-solve with that arc removed (max_flow_value) and report the throughput lost. Losing arc 2->3 drops the max flow from 30 to 10; each of the other flow-carrying arcs costs 10.\", \"sql\": \"SELECT f.\\\"from\\\", f.\\\"to\\\", f.flow, ortools.main.max_flow_value(list_filter([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], lambda a: NOT (a[1] = f.\\\"from\\\" AND a[2] = f.\\\"to\\\")), 0, 3) AS flow_without_arc, ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) - flow_without_arc AS flow_lost FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3) AS f ORDER BY flow_lost DESC, f.\\\"from\\\", f.\\\"to\\\"\"}]",
+        "vgi.keywords": "[\"max flow\", \"maximum flow\", \"min cut\", \"network flow\", \"throughput\", \"connectivity\", \"or-tools\", \"optimization\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"from\", \"type\": \"BIGINT\", \"description\": \"Arc tail node.\"}, {\"name\": \"to\", \"type\": \"BIGINT\", \"description\": \"Arc head node.\"}, {\"name\": \"flow\", \"type\": \"BIGINT\", \"description\": \"Flow sent on this arc (rows with zero flow are omitted).\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / INFEASIBLE / UNKNOWN.\"}]",
+        "vgi.title": "Maximum Flow"
+      },
+      null,
+      [
+        "source",
+        "sink",
+        "arcs"
+      ],
+      [
+        "BIGINT",
+        "BIGINT",
+        "BIGINT[][]"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22597,
+      [
+        "SELECT sum(flow) FILTER (WHERE \"from\" = 0) AS out_of_source FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)",
+        "SELECT f.\"from\", f.\"to\", f.flow, ortools.main.max_flow_value(list_filter([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], lambda a: NOT (a[1] = f.\"from\" AND a[2] = f.\"to\")), 0, 3) AS flow_without_arc, ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) - flow_without_arc AS flow_lost FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3) AS f ORDER BY flow_lost DESC, f.\"from\", f.\"to\""
+      ],
+      null,
+      [
+        "optimization",
+        "flow",
+        "network"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "max_flow_value",
+      null,
+      "scalar",
+      "The scalar maximum-flow value from source to sink over a capacitated network (arcs as a [[from, to, capacity], ...] LIST). Backed by OR-Tools SimpleMaxFlow.",
+      null,
+      {
+        "vgi.category": "Network Flow",
+        "vgi.doc_llm": "## `max_flow_value`\n\nReturn the **scalar maximum-flow value** from `source` to `sink` over a capacitated network, one value per input row. `arcs` is a `LIST<LIST<BIGINT>>` of `[from, to, capacity]` triples (build it with `array_agg([f, t, cap])`); `source` and `sink` are node ids. Use the `max_flow` table function for the per-arc flow.",
+        "vgi.doc_md": "# max_flow_value\n\nScalar maximum-flow value.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/flow/maxflow)",
+        "vgi.example_queries": "[{\"description\": \"Max-flow value from node 0 to node 3 (= 30).\", \"sql\": \"SELECT ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3)\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Max-flow value from node 0 to node 3 (= 30).\", \"sql\": \"SELECT ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3)\"}]",
+        "vgi.keywords": "[\"max flow\", \"maximum flow\", \"min cut\", \"network flow\", \"scalar\", \"or-tools\", \"optimization\"]",
+        "vgi.title": "Maximum-Flow Value (Scalar)"
+      },
+      "BIGINT",
+      [
+        "arcs",
+        "source",
+        "sink"
+      ],
+      [
+        "BIGINT[][]",
+        "BIGINT",
+        "BIGINT"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22596,
+      [
+        "SELECT ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3)"
+      ],
+      "CONSISTENT",
+      [
+        "optimization",
+        "flow",
+        "network"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "min_cost_flow",
+      null,
+      "table",
+      "Minimum-cost flow: route supply to demand over a capacitated, costed network at minimum total cost. Backed by OR-Tools SimpleMinCostFlow. Returns one row per arc with positive flow.",
+      null,
+      {
+        "vgi.category": "Network Flow",
+        "vgi.doc_llm": "## `min_cost_flow`\n\nRoute flow from supply nodes to demand nodes over a **capacitated, costed network** so that total cost is minimized. Classic transportation / logistics optimization.\n\n**Inputs.** `arcs` = `[from, to, capacity, unit_cost]` integer arcs; `supplies` = `[node, supply]` (positive at sources, negative at sinks; the supplies **must sum to zero**). All values are integers.\n\n**Outputs.** One row per arc that carries positive flow: `from`, `to`, `flow`, `cost`, `status`. An infeasible instance returns a single `status='INFEASIBLE'` row.",
+        "vgi.doc_md": "# min_cost_flow\n\nMinimum-cost flow over a capacitated, costed network.\n\nSupplies must sum to zero. Returns one row per arc with positive flow.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/flow/mincostflow)",
+        "vgi.example_queries": "[{\"description\": \"Min-cost flow of 20 units out of node 0 to sinks 3 (5 units) and 4 (15 units) -- the canonical OR-Tools instance, optimal total cost 150.\", \"sql\": \"SELECT \\\"from\\\", \\\"to\\\", flow, cost FROM ortools.main.min_cost_flow(arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[1,4,10,6],[2,3,15,1],[2,4,4,3],[3,4,20,2],[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[3,-5],[4,-15]]::BIGINT[][]) ORDER BY \\\"from\\\", \\\"to\\\"\"}, {\"description\": \"Ship 12 units from node 0 to node 3 at minimum cost (68), and compare against the network's maximum 0->3 throughput from max_flow_value over the same arcs' capacities (17), leaving 5 units of headroom.\", \"sql\": \"SELECT sum(flow) FILTER (WHERE \\\"from\\\" = 0) AS shipped, sum(cost) AS total_cost, ortools.main.max_flow_value(list_transform([[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], lambda a: a[1:3]), 0, 3) AS max_shippable, max_shippable - shipped AS headroom FROM ortools.main.min_cost_flow(arcs := [[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], supplies := [[0,12],[3,-12]]::BIGINT[][]) ORDER BY total_cost\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Min-cost flow of 20 units out of node 0 to sinks 3 (5 units) and 4 (15 units) -- the canonical OR-Tools instance, optimal total cost 150.\", \"sql\": \"SELECT \\\"from\\\", \\\"to\\\", flow, cost FROM ortools.main.min_cost_flow(arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[1,4,10,6],[2,3,15,1],[2,4,4,3],[3,4,20,2],[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[3,-5],[4,-15]]::BIGINT[][]) ORDER BY \\\"from\\\", \\\"to\\\"\"}, {\"description\": \"Ship 12 units from node 0 to node 3 at minimum cost (68), and compare against the network's maximum 0->3 throughput from max_flow_value over the same arcs' capacities (17), leaving 5 units of headroom.\", \"sql\": \"SELECT sum(flow) FILTER (WHERE \\\"from\\\" = 0) AS shipped, sum(cost) AS total_cost, ortools.main.max_flow_value(list_transform([[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], lambda a: a[1:3]), 0, 3) AS max_shippable, max_shippable - shipped AS headroom FROM ortools.main.min_cost_flow(arcs := [[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], supplies := [[0,12],[3,-12]]::BIGINT[][]) ORDER BY total_cost\"}]",
+        "vgi.keywords": "[\"min cost flow\", \"minimum cost flow\", \"network flow\", \"transportation problem\", \"supply demand\", \"logistics\", \"or-tools\", \"optimization\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"from\", \"type\": \"BIGINT\", \"description\": \"Arc tail node.\"}, {\"name\": \"to\", \"type\": \"BIGINT\", \"description\": \"Arc head node.\"}, {\"name\": \"flow\", \"type\": \"BIGINT\", \"description\": \"Flow sent on this arc (rows with zero flow are omitted).\"}, {\"name\": \"cost\", \"type\": \"BIGINT\", \"description\": \"Flow times unit cost on this arc.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / INFEASIBLE / UNKNOWN.\"}]",
+        "vgi.title": "Minimum-Cost Flow"
+      },
+      null,
+      [
+        "supplies",
+        "arcs"
+      ],
+      [
+        "BIGINT[][]",
+        "BIGINT[][]"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22598,
+      [
+        "SELECT \"from\", \"to\", flow, cost FROM ortools.main.min_cost_flow(arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[1,4,10,6],[2,3,15,1],[2,4,4,3],[3,4,20,2],[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[3,-5],[4,-15]]::BIGINT[][]) ORDER BY \"from\", \"to\"",
+        "SELECT sum(flow) FILTER (WHERE \"from\" = 0) AS shipped, sum(cost) AS total_cost, ortools.main.max_flow_value(list_transform([[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], lambda a: a[1:3]), 0, 3) AS max_shippable, max_shippable - shipped AS headroom FROM ortools.main.min_cost_flow(arcs := [[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], supplies := [[0,12],[3,-12]]::BIGINT[][]) ORDER BY total_cost"
+      ],
+      null,
+      [
+        "optimization",
+        "flow",
+        "network"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_assignment",
+      null,
+      "table",
+      "Linear sum assignment: match workers to tasks over sparse [worker, task, cost] arcs, minimizing (or maximizing) total cost. Backed by OR-Tools SimpleLinearSumAssignment.",
+      null,
+      {
+        "vgi.category": "Assignment",
+        "vgi.doc_llm": "## `solve_assignment`\n\nSolve a **linear sum assignment**: match each worker to at most one task (and each task to at most one worker) so the **total arc cost is minimized** (or maximized).\n\n**Inputs.** `cost` is a sparse `LIST<LIST<BIGINT>>` of `[worker, task, cost]` integer triples (build it with `array_agg([w, t, c])`); a pair that is absent is a disallowed assignment. `maximize := true` negates costs internally. All costs must be integers.\n\n**Outputs.** One row per matched worker: `worker`, `task`, `cost`, `status`. When no perfect matching of every worker exists the result is **exactly one row** with `status = 'INFEASIBLE'` and NULL `task`/`cost` -- never an empty set.\n\n**Edge cases.** A non-integer cost raises a clear error (scale to integers first).",
+        "vgi.doc_md": "# solve_assignment\n\nMinimum- (or maximum-) cost matching of workers to tasks over sparse `[worker, task, cost]` arcs.\n\nReturns one row per matched worker; an unmatchable instance returns a single `status = 'INFEASIBLE'` row.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/assignment/linear_assignment)",
+        "vgi.example_queries": "[{\"description\": \"Assign 3 workers to 3 tasks minimizing total cost (unique optimum 0->1, 1->0, 2->2).\", \"sql\": \"SELECT worker, task, cost FROM ortools.main.solve_assignment(cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false) ORDER BY worker\"}, {\"description\": \"Maximize total value instead of minimizing cost.\", \"sql\": \"SELECT worker, task, cost, status FROM ortools.main.solve_assignment(cost := [[0,0,8],[0,1,7],[1,0,6],[1,1,9]]::BIGINT[][], maximize := true) ORDER BY worker\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Assign 3 workers to 3 tasks minimizing total cost (unique optimum 0->1, 1->0, 2->2).\", \"sql\": \"SELECT worker, task, cost FROM ortools.main.solve_assignment(cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false) ORDER BY worker\"}, {\"description\": \"Maximize total value instead of minimizing cost.\", \"sql\": \"SELECT worker, task, cost, status FROM ortools.main.solve_assignment(cost := [[0,0,8],[0,1,7],[1,0,6],[1,1,9]]::BIGINT[][], maximize := true) ORDER BY worker\"}]",
+        "vgi.keywords": "[\"assignment problem\", \"linear sum assignment\", \"hungarian algorithm\", \"bipartite matching\", \"worker task\", \"minimum cost matching\", \"or-tools\", \"optimization\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"worker\", \"type\": \"BIGINT\", \"description\": \"Worker id from the input arcs.\"}, {\"name\": \"task\", \"type\": \"BIGINT\", \"description\": \"Task this worker is assigned to.\"}, {\"name\": \"cost\", \"type\": \"BIGINT\", \"description\": \"Arc cost of this match.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL, or INFEASIBLE when no perfect matching exists.\"}]",
+        "vgi.title": "Linear Assignment (Min-Cost Matching)"
+      },
+      null,
+      [
+        "maximize",
+        "cost"
+      ],
+      [
+        "BOOLEAN",
+        "BIGINT[][]"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22599,
+      [
+        "SELECT worker, task, cost FROM ortools.main.solve_assignment(cost := [[0,0,90],[0,1,76],[0,2,75],[1,0,35],[1,1,85],[1,2,55],[2,0,125],[2,1,95],[2,2,90]]::BIGINT[][], maximize := false) ORDER BY worker"
+      ],
+      null,
+      [
+        "optimization",
+        "assignment",
+        "matching"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_bin_packing",
+      null,
+      "table",
+      "1-D bin packing: assign items to the fewest identical fixed-capacity bins. CP-SAT model minimizing the number of open bins. Returns the item -> bin assignment.",
+      null,
+      {
+        "vgi.category": "Packing",
+        "vgi.doc_llm": "## `solve_bin_packing`\n\nPack items into the **fewest identical fixed-capacity bins** (1-D bin packing as a CP-SAT model).\n\n**Inputs.** `sizes` = `[s0, s1, ...]`; `bin_capacity` (scalar). **Outputs.** One row per item with the `bin` it is assigned to and `status`. Use `solve_bin_packing_bins(...)` for the per-bin rollup (`bin`, `used`).",
+        "vgi.doc_md": "# solve_bin_packing\n\nPack items into the fewest fixed-capacity bins.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/pack/bin_packing)",
+        "vgi.example_queries": "[{\"description\": \"Pack six items into the fewest bins of capacity 10 (optimum 3 bins).\", \"sql\": \"SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Pack six items into the fewest bins of capacity 10 (optimum 3 bins).\", \"sql\": \"SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)\"}]",
+        "vgi.keywords": "[\"bin packing\", \"bin packing problem\", \"fewest bins\", \"capacity\", \"packing\", \"containers\", \"or-tools\", \"cp-sat\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"item\", \"type\": \"BIGINT\", \"description\": \"Item index (0-based).\"}, {\"name\": \"bin\", \"type\": \"BIGINT\", \"description\": \"Bin the item is assigned to (0-based).\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / FEASIBLE / INFEASIBLE.\"}]",
+        "vgi.title": "Bin Packing (Fewest Bins)"
+      },
+      null,
+      [
+        "sizes",
+        "time_limit_s",
+        "random_seed",
+        "bin_capacity"
+      ],
+      [
+        "BIGINT[]",
+        "DOUBLE",
+        "BIGINT",
+        "BIGINT"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22600,
+      [
+        "SELECT count(DISTINCT bin) AS bins FROM ortools.main.solve_bin_packing(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10, time_limit_s := 5.0)"
+      ],
+      null,
+      [
+        "optimization",
+        "packing",
+        "bin-packing"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_bin_packing_bins",
+      null,
+      "table",
+      "Per-bin rollup of the bin-packing solution: one row per open bin with the count of items it holds. Same inputs as solve_bin_packing.",
+      null,
+      {
+        "vgi.category": "Packing",
+        "vgi.doc_llm": "## `solve_bin_packing_bins`\n\nThe **per-bin rollup** of a 1-D bin-packing solution: one row per open bin reporting `used`, the number of items packed into it. It accepts the same `sizes` and `bin_capacity` inputs as `solve_bin_packing`.",
+        "vgi.doc_md": "# solve_bin_packing_bins\n\nPer-bin rollup of a bin-packing solution.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/pack/bin_packing)",
+        "vgi.example_queries": "[{\"description\": \"Per-bin item counts for a six-item pack into capacity-10 bins.\", \"sql\": \"SELECT bin, used FROM ortools.main.solve_bin_packing_bins(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10) ORDER BY bin\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Per-bin item counts for a six-item pack into capacity-10 bins.\", \"sql\": \"SELECT bin, used FROM ortools.main.solve_bin_packing_bins(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10) ORDER BY bin\"}]",
+        "vgi.keywords": "[\"bin packing\", \"rollup\", \"open bins\", \"bin utilization\", \"packing\", \"or-tools\", \"cp-sat\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"bin\", \"type\": \"BIGINT\", \"description\": \"Bin index (only bins holding >= 1 item).\"}, {\"name\": \"used\", \"type\": \"BIGINT\", \"description\": \"Number of items packed into the bin.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / FEASIBLE / INFEASIBLE.\"}]",
+        "vgi.title": "Bin Packing (Per-Bin Rollup)"
+      },
+      null,
+      [
+        "sizes",
+        "time_limit_s",
+        "random_seed",
+        "bin_capacity"
+      ],
+      [
+        "BIGINT[]",
+        "DOUBLE",
+        "BIGINT",
+        "BIGINT"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22601,
+      [
+        "SELECT bin, used FROM ortools.main.solve_bin_packing_bins(sizes := [3,5,2,7,1,4]::BIGINT[], bin_capacity := 10) ORDER BY bin"
+      ],
+      null,
+      [
+        "optimization",
+        "packing",
+        "bin-packing"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_cpsat",
+      null,
+      "table",
+      "Solve an arbitrary CP-SAT constraint-programming model expressed as a versioned JSON document (variables, constraints, objective). Returns one row per variable plus solve metadata. The general escape hatch for constraints highs/LP cannot express.",
+      null,
+      {
+        "vgi.category": "Constraint Programming",
+        "vgi.doc_llm": "## `solve_cpsat`\n\nSolve an **arbitrary CP-SAT constraint-programming model** handed in as a **versioned JSON document** -- the general escape hatch for everything the per-domain builders and the `highs` LP/MIP extension cannot express (global constraints like `all_different`, `no_overlap`, `cumulative`, `circuit`, reification, intervals).\n\n**The model.** A JSON object with `version` (must be 1), `variables` (each `int` / `bool` / `interval` with a unique `name`), `constraints`, and an optional `objective`. All numeric domains are **integers** -- a fractional bound / coefficient / constant is rejected with a clear error (scale floats to integers first). The full grammar is in the README (section A).\n\n**Outputs.** One row per variable: `var`, `value`, plus the solve metadata (`status`, `objective`, `best_bound`, `wall_time`, `num_branches`) repeated on every row so a single SELECT is self-describing. Interval variables expand to `<name>.start` / `.size` / `.end` (and `.presence` for optional intervals).\n\n**The empty-vs-infeasible contract.** A model with no solution still returns **exactly one row** carrying `status` in {`INFEASIBLE`, `MODEL_INVALID`, `UNKNOWN`} with NULL `var`/`value`; a solve is never an empty result set. Test `WHERE status='INFEASIBLE'`, never `count(*)=0`.\n\n**Determinism.** Single-threaded by default (`num_workers := 0`) with a fixed `random_seed`, so the objective and assignment are reproducible.",
+        "vgi.doc_md": "# solve_cpsat\n\nSolve a hand-built **CP-SAT** model expressed as a versioned JSON document.\n\nSee the README (section A) for the full JSON dialect: `variables` (int / bool / interval), `constraints` (linear, all_different, element, table, no_overlap, cumulative, circuit, reservoir, mult/div/abs/min/max equality, bool_or/and/xor, implication, with optional `enforce` reification), and an optional `objective`.\n\nAll numeric domains are integers. A no-solution model returns a single status row.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/cp/cp_solver)",
+        "vgi.example_queries": "[{\"description\": \"0/1 knapsack as a CP-SAT model: maximize value within a weight budget (optimum 40).\", \"sql\": \"SELECT var, value, status, objective FROM ortools.main.solve_cpsat(model := '{\\\"version\\\":1,\\\"variables\\\":[{\\\"kind\\\":\\\"bool\\\",\\\"name\\\":\\\"a\\\"},{\\\"kind\\\":\\\"bool\\\",\\\"name\\\":\\\"b\\\"},{\\\"kind\\\":\\\"bool\\\",\\\"name\\\":\\\"c\\\"}],\\\"constraints\\\":[{\\\"type\\\":\\\"linear\\\",\\\"expr\\\":{\\\"sum\\\":[{\\\"coef\\\":5,\\\"var\\\":\\\"a\\\"},{\\\"coef\\\":10,\\\"var\\\":\\\"b\\\"},{\\\"coef\\\":15,\\\"var\\\":\\\"c\\\"}]},\\\"op\\\":\\\"<=\\\",\\\"rhs\\\":20}],\\\"objective\\\":{\\\"sense\\\":\\\"maximize\\\",\\\"terms\\\":[{\\\"coef\\\":10,\\\"var\\\":\\\"a\\\"},{\\\"coef\\\":20,\\\"var\\\":\\\"b\\\"},{\\\"coef\\\":30,\\\"var\\\":\\\"c\\\"}]}}') ORDER BY var\"}, {\"description\": \"Single-machine no-overlap schedule minimizing makespan (optimum 10).\", \"sql\": \"SELECT objective, status FROM ortools.main.solve_cpsat(model := '{\\\"version\\\":1,\\\"variables\\\":[{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"s0\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"e0\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"s1\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"e1\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"s2\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"e2\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"interval\\\",\\\"name\\\":\\\"i0\\\",\\\"start\\\":{\\\"var\\\":\\\"s0\\\"},\\\"size\\\":{\\\"const\\\":3},\\\"end\\\":{\\\"var\\\":\\\"e0\\\"}},{\\\"kind\\\":\\\"interval\\\",\\\"name\\\":\\\"i1\\\",\\\"start\\\":{\\\"var\\\":\\\"s1\\\"},\\\"size\\\":{\\\"const\\\":5},\\\"end\\\":{\\\"var\\\":\\\"e1\\\"}},{\\\"kind\\\":\\\"interval\\\",\\\"name\\\":\\\"i2\\\",\\\"start\\\":{\\\"var\\\":\\\"s2\\\"},\\\"size\\\":{\\\"const\\\":2},\\\"end\\\":{\\\"var\\\":\\\"e2\\\"}},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"makespan\\\",\\\"lb\\\":0,\\\"ub\\\":20}],\\\"constraints\\\":[{\\\"type\\\":\\\"no_overlap\\\",\\\"intervals\\\":[\\\"i0\\\",\\\"i1\\\",\\\"i2\\\"]},{\\\"type\\\":\\\"max_equality\\\",\\\"target\\\":{\\\"var\\\":\\\"makespan\\\"},\\\"exprs\\\":[{\\\"var\\\":\\\"e0\\\"},{\\\"var\\\":\\\"e1\\\"},{\\\"var\\\":\\\"e2\\\"}]}],\\\"objective\\\":{\\\"sense\\\":\\\"minimize\\\",\\\"terms\\\":[{\\\"coef\\\":1,\\\"var\\\":\\\"makespan\\\"}]}}', time_limit_s := 5.0) LIMIT 1\"}]",
+        "vgi.executable_examples": "[{\"description\": \"0/1 knapsack as a CP-SAT model: maximize value within a weight budget (optimum 40).\", \"sql\": \"SELECT var, value, status, objective FROM ortools.main.solve_cpsat(model := '{\\\"version\\\":1,\\\"variables\\\":[{\\\"kind\\\":\\\"bool\\\",\\\"name\\\":\\\"a\\\"},{\\\"kind\\\":\\\"bool\\\",\\\"name\\\":\\\"b\\\"},{\\\"kind\\\":\\\"bool\\\",\\\"name\\\":\\\"c\\\"}],\\\"constraints\\\":[{\\\"type\\\":\\\"linear\\\",\\\"expr\\\":{\\\"sum\\\":[{\\\"coef\\\":5,\\\"var\\\":\\\"a\\\"},{\\\"coef\\\":10,\\\"var\\\":\\\"b\\\"},{\\\"coef\\\":15,\\\"var\\\":\\\"c\\\"}]},\\\"op\\\":\\\"<=\\\",\\\"rhs\\\":20}],\\\"objective\\\":{\\\"sense\\\":\\\"maximize\\\",\\\"terms\\\":[{\\\"coef\\\":10,\\\"var\\\":\\\"a\\\"},{\\\"coef\\\":20,\\\"var\\\":\\\"b\\\"},{\\\"coef\\\":30,\\\"var\\\":\\\"c\\\"}]}}') ORDER BY var\"}, {\"description\": \"Single-machine no-overlap schedule minimizing makespan (optimum 10).\", \"sql\": \"SELECT objective, status FROM ortools.main.solve_cpsat(model := '{\\\"version\\\":1,\\\"variables\\\":[{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"s0\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"e0\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"s1\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"e1\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"s2\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"e2\\\",\\\"lb\\\":0,\\\"ub\\\":20},{\\\"kind\\\":\\\"interval\\\",\\\"name\\\":\\\"i0\\\",\\\"start\\\":{\\\"var\\\":\\\"s0\\\"},\\\"size\\\":{\\\"const\\\":3},\\\"end\\\":{\\\"var\\\":\\\"e0\\\"}},{\\\"kind\\\":\\\"interval\\\",\\\"name\\\":\\\"i1\\\",\\\"start\\\":{\\\"var\\\":\\\"s1\\\"},\\\"size\\\":{\\\"const\\\":5},\\\"end\\\":{\\\"var\\\":\\\"e1\\\"}},{\\\"kind\\\":\\\"interval\\\",\\\"name\\\":\\\"i2\\\",\\\"start\\\":{\\\"var\\\":\\\"s2\\\"},\\\"size\\\":{\\\"const\\\":2},\\\"end\\\":{\\\"var\\\":\\\"e2\\\"}},{\\\"kind\\\":\\\"int\\\",\\\"name\\\":\\\"makespan\\\",\\\"lb\\\":0,\\\"ub\\\":20}],\\\"constraints\\\":[{\\\"type\\\":\\\"no_overlap\\\",\\\"intervals\\\":[\\\"i0\\\",\\\"i1\\\",\\\"i2\\\"]},{\\\"type\\\":\\\"max_equality\\\",\\\"target\\\":{\\\"var\\\":\\\"makespan\\\"},\\\"exprs\\\":[{\\\"var\\\":\\\"e0\\\"},{\\\"var\\\":\\\"e1\\\"},{\\\"var\\\":\\\"e2\\\"}]}],\\\"objective\\\":{\\\"sense\\\":\\\"minimize\\\",\\\"terms\\\":[{\\\"coef\\\":1,\\\"var\\\":\\\"makespan\\\"}]}}', time_limit_s := 5.0) LIMIT 1\"}]",
+        "vgi.keywords": "[\"cp-sat\", \"constraint programming\", \"constraint solver\", \"satisfiability\", \"integer programming\", \"scheduling\", \"all_different\", \"no_overlap\", \"cumulative\", \"circuit\", \"or-tools\", \"optimization\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"var\", \"type\": \"VARCHAR\", \"description\": \"Variable name; intervals expand to <name>.start/.size/.end/.presence.\"}, {\"name\": \"value\", \"type\": \"BIGINT\", \"description\": \"Assigned integer value (NULL on a non-solution status row).\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL/FEASIBLE/INFEASIBLE/MODEL_INVALID/UNKNOWN.\"}, {\"name\": \"objective\", \"type\": \"DOUBLE\", \"description\": \"Objective value (NULL if no objective / no solution).\"}, {\"name\": \"best_bound\", \"type\": \"DOUBLE\", \"description\": \"Best objective bound (the other end of the gap).\"}, {\"name\": \"wall_time\", \"type\": \"DOUBLE\", \"description\": \"Solver wall-clock time in seconds.\"}, {\"name\": \"num_branches\", \"type\": \"BIGINT\", \"description\": \"Number of search branches explored.\"}]",
+        "vgi.title": "CP-SAT Constraint Solver (JSON Model)"
+      },
+      null,
+      [
+        "time_limit_s",
+        "enumerate_all",
+        "random_seed",
+        "model",
+        "num_workers",
+        "project"
+      ],
+      [
+        "DOUBLE",
+        "BOOLEAN",
+        "BIGINT",
+        "VARCHAR",
+        "BIGINT",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22602,
+      [
+        "SELECT var, value, status, objective FROM ortools.main.solve_cpsat(model := '{\"version\":1,\"variables\":[{\"kind\":\"bool\",\"name\":\"a\"},{\"kind\":\"bool\",\"name\":\"b\"},{\"kind\":\"bool\",\"name\":\"c\"}],\"constraints\":[{\"type\":\"linear\",\"expr\":{\"sum\":[{\"coef\":5,\"var\":\"a\"},{\"coef\":10,\"var\":\"b\"},{\"coef\":15,\"var\":\"c\"}]},\"op\":\"<=\",\"rhs\":20}],\"objective\":{\"sense\":\"maximize\",\"terms\":[{\"coef\":10,\"var\":\"a\"},{\"coef\":20,\"var\":\"b\"},{\"coef\":30,\"var\":\"c\"}]}}') ORDER BY var"
+      ],
+      null,
+      [
+        "optimization",
+        "constraint-programming",
+        "cp-sat"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_jobshop",
+      null,
+      "table",
+      "Job-shop scheduling: schedule the tasks of several jobs on shared machines (tasks of a job run in order, one task per machine at a time) to minimize the makespan. CP-SAT.",
+      null,
+      {
+        "vgi.category": "Scheduling",
+        "vgi.doc_llm": "## `solve_jobshop`\n\nSchedule the tasks of several **jobs** onto shared **machines** to minimize the **makespan** (the time the last task finishes). Within a job, tasks run in `task` order; each machine runs one task at a time.\n\n**Inputs.** `tasks` = `[job, task, machine, duration]` integer rows. Optional `horizon` (defaults to the sum of durations), `time_limit_s`, `random_seed`.\n\n**Outputs.** One row per task with its `start` / `end`, the optimal `makespan` (repeated on every row), and `status`. An infeasible / unsolved instance returns a single status row.",
+        "vgi.doc_md": "# solve_jobshop\n\nJob-shop scheduling minimizing makespan.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/scheduling/job_shop)",
+        "vgi.example_queries": "[{\"description\": \"Two-job, two-machine job shop minimizing makespan (optimum 7).\", \"sql\": \"SELECT job, task, machine, start, \\\"end\\\", makespan FROM ortools.main.solve_jobshop(tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][], time_limit_s := 5.0) ORDER BY job, task\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Two-job, two-machine job shop minimizing makespan (optimum 7).\", \"sql\": \"SELECT job, task, machine, start, \\\"end\\\", makespan FROM ortools.main.solve_jobshop(tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][], time_limit_s := 5.0) ORDER BY job, task\"}]",
+        "vgi.keywords": "[\"job shop\", \"jobshop scheduling\", \"makespan\", \"machine scheduling\", \"no overlap\", \"production scheduling\", \"or-tools\", \"cp-sat\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"job\", \"type\": \"BIGINT\", \"description\": \"Job id.\"}, {\"name\": \"task\", \"type\": \"BIGINT\", \"description\": \"Task index within the job.\"}, {\"name\": \"machine\", \"type\": \"BIGINT\", \"description\": \"Machine the task runs on.\"}, {\"name\": \"start\", \"type\": \"BIGINT\", \"description\": \"Scheduled start time.\"}, {\"name\": \"end\", \"type\": \"BIGINT\", \"description\": \"Scheduled end time (start + duration).\"}, {\"name\": \"makespan\", \"type\": \"BIGINT\", \"description\": \"Optimal makespan (repeated on every row).\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / FEASIBLE / INFEASIBLE / UNKNOWN.\"}]",
+        "vgi.title": "Job-Shop Scheduling (Min Makespan)"
+      },
+      null,
+      [
+        "time_limit_s",
+        "random_seed",
+        "tasks",
+        "horizon"
+      ],
+      [
+        "DOUBLE",
+        "BIGINT",
+        "BIGINT[][]",
+        "BIGINT"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22603,
+      [
+        "SELECT job, task, machine, start, \"end\", makespan FROM ortools.main.solve_jobshop(tasks := [[0,0,0,3],[0,1,1,2],[1,0,1,2],[1,1,0,4]]::BIGINT[][], time_limit_s := 5.0) ORDER BY job, task"
+      ],
+      null,
+      [
+        "optimization",
+        "scheduling",
+        "cp-sat"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_knapsack",
+      null,
+      "table",
+      "Multi-dimensional 0/1 knapsack: choose items to maximize total value subject to one or more capacity dimensions. Backed by OR-Tools KnapsackSolver (branch and bound).",
+      null,
+      {
+        "vgi.category": "Packing",
+        "vgi.doc_llm": "## `solve_knapsack`\n\nChoose a subset of items to **maximize total value** subject to one or more **capacity dimensions** (multi-dimensional 0/1 knapsack).\n\n**Inputs.** `item_values` = `[v0, v1, ...]`; `weights` = `[[w0_d0, w0_d1, ...], ...]` (one row per item, one column per capacity dimension); `capacities` = `[c_d0, c_d1, ...]`. **Outputs.** One row per item with `chosen` (`BOOLEAN`) and `status`.",
+        "vgi.doc_md": "# solve_knapsack\n\nMulti-dimensional 0/1 knapsack maximizing value.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/pack/knapsack)",
+        "vgi.example_queries": "[{\"description\": \"Single-dimension 0/1 knapsack: pick items maximizing value within capacity 40 (optimum 80).\", \"sql\": \"SELECT item, chosen FROM ortools.main.solve_knapsack(item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], capacities := [40]::BIGINT[]) ORDER BY item\"}, {\"description\": \"Two-dimensional knapsack: each item has a weight and a volume, packed under both a weight budget (50) and a volume budget (5) at once -- one `weights` column per dimension.\", \"sql\": \"SELECT item, chosen, status FROM ortools.main.solve_knapsack(item_values := [60,100,120]::BIGINT[], weights := [[10,2],[20,3],[30,4]]::BIGINT[][], capacities := [50,5]::BIGINT[]) ORDER BY item\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Single-dimension 0/1 knapsack: pick items maximizing value within capacity 40 (optimum 80).\", \"sql\": \"SELECT item, chosen FROM ortools.main.solve_knapsack(item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], capacities := [40]::BIGINT[]) ORDER BY item\"}, {\"description\": \"Two-dimensional knapsack: each item has a weight and a volume, packed under both a weight budget (50) and a volume budget (5) at once -- one `weights` column per dimension.\", \"sql\": \"SELECT item, chosen, status FROM ortools.main.solve_knapsack(item_values := [60,100,120]::BIGINT[], weights := [[10,2],[20,3],[30,4]]::BIGINT[][], capacities := [50,5]::BIGINT[]) ORDER BY item\"}]",
+        "vgi.keywords": "[\"knapsack\", \"0/1 knapsack\", \"multidimensional knapsack\", \"selection\", \"budget\", \"value maximization\", \"or-tools\", \"optimization\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"item\", \"type\": \"BIGINT\", \"description\": \"Item index (0-based).\"}, {\"name\": \"chosen\", \"type\": \"BOOLEAN\", \"description\": \"True if the item is packed into the knapsack.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / FEASIBLE / INFEASIBLE.\"}]",
+        "vgi.title": "Knapsack (Value Maximization)"
+      },
+      null,
+      [
+        "weights",
+        "item_values",
+        "capacities"
+      ],
+      [
+        "BIGINT[][]",
+        "BIGINT[]",
+        "BIGINT[]"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22604,
+      [
+        "SELECT item, chosen FROM ortools.main.solve_knapsack(item_values := [10,20,30,40,50]::BIGINT[], weights := [[5],[10],[15],[20],[25]]::BIGINT[][], capacities := [40]::BIGINT[]) ORDER BY item"
+      ],
+      null,
+      [
+        "optimization",
+        "packing",
+        "knapsack"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_rcpsp",
+      null,
+      "table",
+      "Resource-constrained project scheduling (RCPSP): schedule tasks with durations, precedences, and per-resource capacity (renewable) to minimize makespan. CP-SAT cumulative.",
+      null,
+      {
+        "vgi.category": "Scheduling",
+        "vgi.doc_llm": "## `solve_rcpsp`\n\nSolve a **resource-constrained project scheduling problem**: schedule tasks (each with a duration and a per-resource demand) subject to finish-to-start **precedences** and renewable **resource capacities**, minimizing the makespan.\n\n**Inputs.** `tasks` = `[task, duration, r0_demand, r1_demand, ...]` (one demand column per resource, in `resources` order); `precedences` = `[pred, succ]`; `resources` = `[resource, capacity]`. **Outputs.** One row per task with `start` / `end`, the optimal `makespan`, and `status`.",
+        "vgi.doc_md": "# solve_rcpsp\n\nResource-constrained project scheduling minimizing makespan.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/scheduling/job_shop)",
+        "vgi.example_queries": "[{\"description\": \"Four-task project, one resource of capacity 2, with two precedences.\", \"sql\": \"SELECT task, start, \\\"end\\\", makespan, status FROM ortools.main.solve_rcpsp(tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0) ORDER BY task\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Four-task project, one resource of capacity 2, with two precedences.\", \"sql\": \"SELECT task, start, \\\"end\\\", makespan, status FROM ortools.main.solve_rcpsp(tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0) ORDER BY task\"}]",
+        "vgi.keywords": "[\"rcpsp\", \"project scheduling\", \"resource constrained\", \"cumulative\", \"makespan\", \"precedence\", \"or-tools\", \"cp-sat\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"task\", \"type\": \"BIGINT\", \"description\": \"Task id.\"}, {\"name\": \"start\", \"type\": \"BIGINT\", \"description\": \"Scheduled start time.\"}, {\"name\": \"end\", \"type\": \"BIGINT\", \"description\": \"Scheduled end time (start + duration).\"}, {\"name\": \"makespan\", \"type\": \"BIGINT\", \"description\": \"Optimal makespan (repeated on every row).\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / FEASIBLE / INFEASIBLE / UNKNOWN.\"}]",
+        "vgi.title": "Resource-Constrained Project Scheduling"
+      },
+      null,
+      [
+        "tasks",
+        "resources",
+        "time_limit_s",
+        "random_seed",
+        "precedences"
+      ],
+      [
+        "BIGINT[][]",
+        "BIGINT[][]",
+        "DOUBLE",
+        "BIGINT",
+        "BIGINT[][]"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22605,
+      [
+        "SELECT task, start, \"end\", makespan, status FROM ortools.main.solve_rcpsp(tasks := [[0,3,2],[1,2,1],[2,4,2],[3,2,1]]::BIGINT[][], precedences := [[0,2],[1,3]]::BIGINT[][], resources := [[0,2]]::BIGINT[][], time_limit_s := 5.0) ORDER BY task"
+      ],
+      null,
+      [
+        "optimization",
+        "scheduling",
+        "cp-sat"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_tsp",
+      null,
+      "table",
+      "Travelling salesperson: shortest single-vehicle tour visiting every node once and returning to the start, over a distance matrix. OR-Tools routing library.",
+      null,
+      {
+        "vgi.category": "Routing",
+        "vgi.doc_llm": "## `solve_tsp`\n\nFind the **shortest single-vehicle tour** that visits every node once and returns to `start`, over a distance matrix.\n\n**Inputs.** `distance` is either sparse `[from, to, meters]` integer triples (build with `array_agg([f, t, m])`) or a dense `n x n` matrix; `start` is the depot node. **Outputs.** The tour in visit order: `seq`, `node`, `arrival` (cumulative distance), `status`. The tour rotation / direction may vary but the length is optimal.",
+        "vgi.doc_md": "# solve_tsp\n\nShortest single-vehicle tour over a distance matrix.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/routing/tsp)",
+        "vgi.example_queries": "[{\"description\": \"5-node TSP from a dense distance matrix; shortest tour length 17.\", \"sql\": \"SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0, time_limit_s := 1.0) ORDER BY seq\"}, {\"description\": \"Same problem from the sparse `[from, to, meters]` edge-list form (build it with `array_agg([f, t, m])`) instead of a dense matrix -- here a complete 4-node graph.\", \"sql\": \"SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,1,1],[0,2,4],[0,3,2],[1,0,1],[1,2,1],[1,3,5],[2,0,4],[2,1,1],[2,3,1],[3,0,2],[3,1,5],[3,2,1]]::BIGINT[][], start := 0, time_limit_s := 1.0) ORDER BY seq\"}]",
+        "vgi.executable_examples": "[{\"description\": \"5-node TSP from a dense distance matrix; shortest tour length 17.\", \"sql\": \"SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0, time_limit_s := 1.0) ORDER BY seq\"}, {\"description\": \"Same problem from the sparse `[from, to, meters]` edge-list form (build it with `array_agg([f, t, m])`) instead of a dense matrix -- here a complete 4-node graph.\", \"sql\": \"SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,1,1],[0,2,4],[0,3,2],[1,0,1],[1,2,1],[1,3,5],[2,0,4],[2,1,1],[2,3,1],[3,0,2],[3,1,5],[3,2,1]]::BIGINT[][], start := 0, time_limit_s := 1.0) ORDER BY seq\"}]",
+        "vgi.keywords": "[\"tsp\", \"travelling salesman\", \"traveling salesperson\", \"shortest tour\", \"routing\", \"route optimization\", \"or-tools\", \"optimization\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"seq\", \"type\": \"INTEGER\", \"description\": \"0-based position in the tour.\"}, {\"name\": \"node\", \"type\": \"BIGINT\", \"description\": \"Node id visited at this position.\"}, {\"name\": \"arrival\", \"type\": \"BIGINT\", \"description\": \"Cumulative distance at arrival.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"OPTIMAL / INFEASIBLE / UNKNOWN / MODEL_INVALID.\"}]",
+        "vgi.title": "Travelling Salesperson (Shortest Tour)"
+      },
+      null,
+      [
+        "time_limit_s",
+        "start",
+        "random_seed",
+        "local_search_metaheuristic",
+        "first_solution_strategy",
+        "distance"
+      ],
+      [
+        "DOUBLE",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR",
+        "BIGINT[][]"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22606,
+      [
+        "SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0, time_limit_s := 1.0) ORDER BY seq"
+      ],
+      null,
+      [
+        "optimization",
+        "routing",
+        "tsp"
+      ]
+    ],
+    [
+      "ortools",
+      "22592",
+      "main",
+      "solve_vrp",
+      null,
+      "table",
+      "Vehicle routing problem: route a fleet from a depot to serve stops at minimum total distance, with optional capacity dimensions, time windows, service/travel time, pickup-delivery pairs, droppable stops, and route balancing. OR-Tools routing library.",
+      null,
+      {
+        "vgi.category": "Routing",
+        "vgi.doc_llm": "## `solve_vrp`\n\nRoute a **fleet of vehicles** from a depot to serve a set of stops at **minimum total distance**, with the full routing surface: multi-dimension **capacity** (`demand` + `vehicle_capacity`), **time windows** (`time_windows` + `service_time` / `travel_time`), **pickup-delivery** pairs (same vehicle + precedence), droppable stops (`allow_dropping` + `drop_penalty`), route balancing (`span_cost_coefficient`), and the OR-Tools `first_solution_strategy` / `local_search_metaheuristic`.\n\n**Inputs.** `distance` (sparse `[from, to, meters]` or dense `n x n`); `demand` = `[node, d0, d1, ...]` (the number of demand columns sets the number of capacity dimensions and therefore the `load_0` .. `load_k` output columns); `num_vehicles`; `vehicle_capacity`; `depot`. Advanced shapes -- per-vehicle / per-dimension capacities, per-vehicle `[start, end]` depots -- go through `settings_json`.\n\n**Outputs.** One row per stop: `route_id` (vehicle), `seq`, `node`, `arrival`, `departure`, `load_0` .. `load_k`, `is_dropped`, `status`. A dropped node appears as a single row with `is_dropped = true` and NULL `route_id`. An unsolved instance returns one status row.\n\n**Determinism.** Governed by the fixed `first_solution_strategy` / `local_search_metaheuristic`. The output `load_*` column count is fixed at bind time from the `demand` argument, so pass `demand` as a literal or a session VARIABLE that is set before the query binds.",
+        "vgi.doc_md": "# solve_vrp\n\nCapacitated, time-windowed vehicle routing.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/routing/cvrp)",
+        "vgi.example_queries": "[{\"description\": \"Capacitated VRP: 1 depot, 3 stops of demand 1, 2 vehicles of capacity 2 (optimal distance 6).\", \"sql\": \"SELECT route_id, seq, node, arrival, load_0 FROM ortools.main.solve_vrp(distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, time_limit_s := 1.0) ORDER BY route_id, seq\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Capacitated VRP: 1 depot, 3 stops of demand 1, 2 vehicles of capacity 2 (optimal distance 6).\", \"sql\": \"SELECT route_id, seq, node, arrival, load_0 FROM ortools.main.solve_vrp(distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, time_limit_s := 1.0) ORDER BY route_id, seq\"}]",
+        "vgi.keywords": "[\"vrp\", \"vehicle routing\", \"cvrp\", \"capacitated routing\", \"time windows\", \"pickup delivery\", \"fleet routing\", \"last mile\", \"logistics\", \"or-tools\", \"optimization\"]",
+        "vgi.result_dynamic_columns_md": "The number of `load_d` columns is fixed at bind time from the `demand` argument (one per capacity dimension), so the output schema varies by call. For `k+1` capacity dimensions the columns are:\n\n| Name | Type | Description |\n| --- | --- | --- |\n| route_id | INTEGER | Vehicle index (NULL on a dropped-node row). |\n| seq | INTEGER | 0-based stop order on the vehicle. |\n| node | BIGINT | Node id (depot at seq 0 and last). |\n| arrival | BIGINT | Cumulative time/distance at arrival. |\n| departure | BIGINT | Arrival + service time. |\n| load_0 | BIGINT | Cumulative load for capacity dimension 0. |\n| load_k | BIGINT | Cumulative load for capacity dimension k (one load_d column per dimension). |\n| is_dropped | BOOLEAN | True on the row emitted for a dropped node. |\n| status | VARCHAR | OPTIMAL / FEASIBLE / INFEASIBLE / UNKNOWN / MODEL_INVALID. |",
+        "vgi.title": "Vehicle Routing (Capacitated / Time-Windowed)"
+      },
+      null,
+      [
+        "travel_time",
+        "time_windows",
+        "time_limit_s",
+        "solution_limit",
+        "first_solution_strategy",
+        "random_seed",
+        "local_search_metaheuristic",
+        "lns_time_limit_s",
+        "service_time",
+        "pickup_delivery",
+        "vehicle_capacity",
+        "num_vehicles",
+        "demand",
+        "distance",
+        "settings_json",
+        "depot",
+        "drop_penalty",
+        "span_cost_coefficient",
+        "allow_dropping"
+      ],
+      [
+        "BIGINT[][]",
+        "BIGINT[][]",
+        "DOUBLE",
+        "BIGINT",
+        "VARCHAR",
+        "BIGINT",
+        "VARCHAR",
+        "DOUBLE",
+        "BIGINT[][]",
+        "BIGINT[][]",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT[][]",
+        "BIGINT[][]",
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "BOOLEAN"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22607,
+      [
+        "SELECT route_id, seq, node, arrival, load_0 FROM ortools.main.solve_vrp(distance := [[0,1,1],[0,2,1],[0,3,2],[1,0,1],[1,2,1],[1,3,2],[2,0,1],[2,1,1],[2,3,1],[3,0,2],[3,1,2],[3,2,1]]::BIGINT[][], demand := [[1,1],[2,1],[3,1]]::BIGINT[][], num_vehicles := 2, vehicle_capacity := 2, depot := 0, time_limit_s := 1.0) ORDER BY route_id, seq"
+      ],
+      null,
+      [
+        "optimization",
+        "routing",
+        "vrp"
+      ]
+    ]
+  ]
+}

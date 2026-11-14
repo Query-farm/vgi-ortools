@@ -1,0 +1,33 @@
+{
+  "query": "SELECT * FROM ortools.main.solver_info",
+  "columns": [
+    "component",
+    "version"
+  ],
+  "rows": [
+    [
+      "ortools",
+      "9.15.6755"
+    ],
+    [
+      "cp_sat",
+      "9.15.6755"
+    ],
+    [
+      "glop",
+      "9.15.6755"
+    ],
+    [
+      "pdlp",
+      "9.15.6755"
+    ],
+    [
+      "worker",
+      "0.4.0"
+    ],
+    [
+      "dialect",
+      "1"
+    ]
+  ]
+}

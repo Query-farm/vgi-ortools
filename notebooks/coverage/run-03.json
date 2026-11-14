@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "notebook_sha256": "bbc3fe720515bdc3ca5613d5e80e1f0f9defa42783c665cac7384304f8f5ff89",
+  "catalog_sha256": "47d055e3b31119f7fd0bc7ce9d6684711d4b66315d98afbc7e369f11625e4d2c",
+  "worker_revision": "4f2e5c6715c50ca86038a1e868dc9437b7e30c3a",
+  "status": "success",
+  "executed_at": "2026-11-14T21:52:31.923165+00:00",
+  "engine": "Haybarn 2.0.0rc11 / community VGI; released vgi-ortools v0.4.0",
+  "command": "uv run --locked vgi-notebooks 03_selecting_is_not_packing_everything.ipynb --timeout 600",
+  "catalog_aliases": [
+    "ortools"
+  ],
+  "cells": [
+    {
+      "id": "parameters",
+      "status": "success",
+      "execution_count": 1,
+      "source_sha256": "5acbcc4ae7897b8b627aa2ea6580334b051909ee5e93a9516282555c0b229350",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "bootstrap",
+      "status": "success",
+      "execution_count": 2,
+      "source_sha256": "bc36e750ab271552da3dfe5e1272326014ac8531d6a0a0d15de88e7fd1f17f27",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "setup",
+      "status": "success",
+      "execution_count": 3,
+      "source_sha256": "cf6e4284d7768291a6ead3a0df0cd219ad98496fee8032a51e9e9690e4faf14a",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "connection",
+      "status": "success",
+      "execution_count": 4,
+      "source_sha256": "bd7b4e47453cf9a4a8dca2a08990cc41b7a42fb44c8b4a141c07335e714ca728",
+      "outputs_sha256": "42dc10be5e943f07beb394fd8bd99840aee66eadf7b3f6d994751c6f29692cdd"
+    },
+    {
+      "id": "items-matrices",
+      "status": "success",
+      "execution_count": 5,
+      "source_sha256": "8ba4f08b775285ff759f5415d497b6d0cae1e778c8928434332c95ed64c34773",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "matrix-transfer",
+      "status": "success",
+      "execution_count": 6,
+      "source_sha256": "de8f9bebab9e055e915460166cb55d27615e9063ee8c06e58ec67a3b6efdd592",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "knapsack-solve",
+      "status": "success",
+      "execution_count": 7,
+      "source_sha256": "b0e9c814798f662c65ce6ac0ab4ab184f78c0fa19bd5446dc16b905b64c69e6c",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "selection-finding",
+      "status": "success",
+      "execution_count": 8,
+      "source_sha256": "8a1dff1c14a5450c82eb8937ef28fc946fd8f0a50ba568c9a4cc0f1b06f4ac81",
+      "outputs_sha256": "da199e7e681b65b5cfee76c418f67ad3e2b443d032f66820735e5c0f5977516e"
+    },
+    {
+      "id": "selection-chart",
+      "status": "success",
+      "execution_count": 9,
+      "source_sha256": "c89dfabd948df8cd8ccd36f29bc5301d2b2ecd9c33ffe88533fcc5e6b805bc9d",
+      "outputs_sha256": "c908170c5d89ecac0cb918c90d7d3fafc736e6464f39104e1734ae23f0615873"
+    },
+    {
+      "id": "packing-solve",
+      "status": "success",
+      "execution_count": 10,
+      "source_sha256": "b8cb4c68ee0760eb9cb7909f66d3ec137521b0538c22c7ba5ecea6bd5d705e04",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "packing-summary",
+      "status": "success",
+      "execution_count": 11,
+      "source_sha256": "bdeeb020783d70cf0dd6108e449f02ce59dae4af8105245abc4dcb82d0ec9d2d",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "packing-finding",
+      "status": "success",
+      "execution_count": 12,
+      "source_sha256": "93efc182b5e056146396c99aa40c4ecfca16f9961329864a6d7671e1b78c92fc",
+      "outputs_sha256": "0e45efa83a4d8cddf6d017f9b66ce65a009f7a101533c46e0bd1b247145a5288"
+    },
+    {
+      "id": "packing-chart",
+      "status": "success",
+      "execution_count": 13,
+      "source_sha256": "d04eb2ad4ec1144cec2aee970b04dc2276f6e34237e8515fa6de25473c058272",
+      "outputs_sha256": "330b6c8bb6ae75c37e3ea944ef5ff59f02d1d4436dbe2b4066d1a3785f0635d1"
+    },
+    {
+      "id": "packing-checks",
+      "status": "success",
+      "execution_count": 14,
+      "source_sha256": "a8db6d513f9308ba15a56b64aad3cd1e04f4ca2f4d60ebfce9fa498d4942f518",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "checks-finding",
+      "status": "success",
+      "execution_count": 15,
+      "source_sha256": "533740276c06b6be85107c63ae1cef607a935c1e39bc418a5c06688cdc00c34d",
+      "outputs_sha256": "44859a1a6f12683a3b72211bf5ed60a87a4cbad6d87cb08015c5a6f5aabd8423"
+    },
+    {
+      "id": "cleanup",
+      "status": "success",
+      "execution_count": 16,
+      "source_sha256": "253dd6f37aa50e657f869d6ba37c2ec4a5b80fcdcb8f313c72b297ad1565dd86",
+      "outputs_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ]
+}

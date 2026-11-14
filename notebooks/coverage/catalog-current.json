@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "repository": "Query-farm/vgi-ortools",
+  "revision": "0883a87b219a0670fcfdcb4f153deb93909f574a",
+  "captured_at": "2026-11-14T21:43:14.929828+00:00",
+  "default_schema": "main",
+  "scope": "all_public_functions_and_tables",
+  "complete": true,
+  "evidence": [
+    {
+      "path": "coverage/current-functions.json",
+      "sha256": "bc493db9b17c0cb85cf6f6159e546b0a8609bf79afba7d74f9421e33dd53014a",
+      "description": "Complete worker-filtered functions export through actual published Haybarn"
+    },
+    {
+      "path": "coverage/current-tables.json",
+      "sha256": "6fd4ec0fc459b18ef3c814d8d2c82d3631afc8c6591622e55374bdc5e702ef11",
+      "description": "Complete worker-filtered tables export through actual published Haybarn"
+    },
+    {
+      "path": "coverage/current-views.json",
+      "sha256": "4e0e94ad31642945b5a8aace30e9b15a202525b8f4fefaeacd1d4aa1a1506ee2",
+      "description": "Complete worker-filtered views export through actual published Haybarn"
+    }
+  ],
+  "objects": [
+    {
+      "schema": "main",
+      "name": "max_flow",
+      "kind": "function",
+      "signatures": [
+        "max_flow(BIGINT, BIGINT, BIGINT[][])"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "max_flow_value",
+      "kind": "function",
+      "signatures": [
+        "max_flow_value(BIGINT[][], BIGINT, BIGINT)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "min_cost_flow",
+      "kind": "function",
+      "signatures": [
+        "min_cost_flow(BIGINT[][], BIGINT[][])"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_assignment",
+      "kind": "function",
+      "signatures": [
+        "solve_assignment(BOOLEAN, BIGINT[][])"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_bin_packing",
+      "kind": "function",
+      "signatures": [
+        "solve_bin_packing(BIGINT[], DOUBLE, BIGINT, BIGINT)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_bin_packing_bins",
+      "kind": "function",
+      "signatures": [
+        "solve_bin_packing_bins(BIGINT[], DOUBLE, BIGINT, BIGINT)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_cpsat",
+      "kind": "function",
+      "signatures": [
+        "solve_cpsat(DOUBLE, BOOLEAN, BIGINT, VARCHAR, BIGINT, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_jobshop",
+      "kind": "function",
+      "signatures": [
+        "solve_jobshop(DOUBLE, BIGINT, BIGINT[][], BIGINT)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_knapsack",
+      "kind": "function",
+      "signatures": [
+        "solve_knapsack(BIGINT[][], BIGINT[], BIGINT[])"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_rcpsp",
+      "kind": "function",
+      "signatures": [
+        "solve_rcpsp(BIGINT[][], BIGINT[][], DOUBLE, BIGINT, BIGINT[][])"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_tsp",
+      "kind": "function",
+      "signatures": [
+        "solve_tsp(DOUBLE, BIGINT, BIGINT, VARCHAR, VARCHAR, BIGINT[][])"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solve_vrp",
+      "kind": "function",
+      "signatures": [
+        "solve_vrp(BIGINT[][], BIGINT[][], DOUBLE, BIGINT, VARCHAR, BIGINT, VARCHAR, DOUBLE, BIGINT[][], BIGINT[][], BIGINT, BIGINT, BIGINT[][], BIGINT[][], VARCHAR, BIGINT, BIGINT, BIGINT, BOOLEAN)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "last_solve_stats",
+      "kind": "table",
+      "signatures": [
+        "TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "solver_info",
+      "kind": "table",
+      "signatures": [
+        "TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    }
+  ]
+}

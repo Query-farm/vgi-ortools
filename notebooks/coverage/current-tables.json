@@ -1,0 +1,77 @@
+{
+  "query": "SELECT * FROM duckdb_tables() WHERE database_name='ortools' ORDER BY schema_name,table_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "schema_oid",
+    "table_name",
+    "table_oid",
+    "comment",
+    "tags",
+    "internal",
+    "temporary",
+    "has_primary_key",
+    "estimated_size",
+    "column_count",
+    "index_count",
+    "check_constraint_count",
+    "sql"
+  ],
+  "rows": [
+    [
+      "ortools",
+      22592,
+      "main",
+      22593,
+      "last_solve_stats",
+      22741,
+      "Statistics of the most recent solve on this worker process, one row per metric (NULL values until the first solve).",
+      {
+        "domain": "operations-research",
+        "vgi.category": "Introspection",
+        "vgi.doc_llm": "The statistics of the **most recent solve** handled by this worker process, as `(metric, value)` rows: `status`, `objective`, `best_bound`, `wall_time`, `num_branches`, `num_conflicts`, `num_booleans`, `deterministic_time`. A convenience mirror of the solve metadata; every `value` is NULL until the first solve runs. This is per-process, not strictly per-connection -- the authoritative, race-free source is the metadata columns on each solver's own result rows.",
+        "vgi.doc_md": "## last_solve_stats\n\nA browsable table of the most recent solve's metrics, one row per metric: `status`, `objective`, `best_bound`, `wall_time`, `num_branches`, `num_conflicts`, `num_booleans`, `deterministic_time`. Scan it after a solve; every `value` is NULL until the first solve runs. It reflects the last solve on this worker *process*, so for a race-free per-query value prefer the metadata columns on the solver's own result rows.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization/cp/cp_solver)",
+        "vgi.example_queries": "[{\"description\": \"Read every metric of the most recent solve on this worker.\", \"sql\": \"SELECT metric, value FROM ortools.main.last_solve_stats ORDER BY metric\"}, {\"description\": \"Fetch just the status of the most recent solve.\", \"sql\": \"SELECT value FROM ortools.main.last_solve_stats WHERE metric = 'status'\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Run a solve, then read back the statistics of that solve.\", \"sql\": [\"SELECT count(*) FROM ortools.main.solve_assignment(cost := [[0,0,1],[1,1,1]]::BIGINT[][], maximize := false)\", \"SELECT metric, value FROM ortools.main.last_solve_stats ORDER BY metric\"]}]",
+        "vgi.keywords": "[\"last solve\", \"solve stats\", \"diagnostics\", \"wall time\", \"num branches\", \"introspection\"]",
+        "vgi.title": "Last Solve Statistics"
+      },
+      false,
+      false,
+      true,
+      0,
+      2,
+      1,
+      0,
+      "CREATE TABLE last_solve_stats(metric VARCHAR, \"value\" VARCHAR, PRIMARY KEY(metric));"
+    ],
+    [
+      "ortools",
+      22592,
+      "main",
+      22593,
+      "solver_info",
+      22740,
+      "Bundled OR-Tools / worker / dialect versions, one row per component (no arguments).",
+      {
+        "domain": "operations-research",
+        "vgi.category": "Introspection",
+        "vgi.doc_llm": "The bundled solver and worker versions as `(component, version)` rows: `ortools`, `cp_sat`, `glop`, `pdlp`, the `worker` build version, and the `dialect` version of the `solve_cpsat` JSON model. Scan it directly (no arguments) for diagnostics or compatibility checks -- e.g. to confirm which OR-Tools release backs a result before relying on version-specific behaviour.",
+        "vgi.doc_md": "## solver_info\n\nA browsable table of the bundled component versions, one row per component: `ortools`, `cp_sat`, `glop`, `pdlp`, the `worker` build version, and the `dialect` version of the `solve_cpsat` JSON model. It takes no arguments -- scan it and filter with `WHERE`.\n\n**Reference:** [OR-Tools documentation](https://developers.google.com/optimization)",
+        "vgi.example_queries": "[{\"description\": \"List every bundled component and its version.\", \"sql\": \"SELECT component, version FROM ortools.main.solver_info ORDER BY component\"}, {\"description\": \"Fetch just the OR-Tools engine version.\", \"sql\": \"SELECT version FROM ortools.main.solver_info WHERE component = 'ortools'\"}]",
+        "vgi.executable_examples": "[{\"description\": \"List the bundled solver and worker versions.\", \"sql\": \"SELECT component, version FROM ortools.main.solver_info ORDER BY component\"}, {\"description\": \"Look up just the OR-Tools engine version.\", \"sql\": \"SELECT version FROM ortools.main.solver_info WHERE component = 'ortools'\"}]",
+        "vgi.keywords": "[\"solver info\", \"version\", \"ortools version\", \"diagnostics\", \"introspection\", \"cp-sat\"]",
+        "vgi.title": "Solver Versions"
+      },
+      false,
+      false,
+      true,
+      0,
+      2,
+      1,
+      0,
+      "CREATE TABLE solver_info(component VARCHAR, \"version\" VARCHAR NOT NULL, PRIMARY KEY(component));"
+    ]
+  ]
+}
