@@ -19,6 +19,8 @@ predictive ML workers (`predict` / `xgboost` / `lightgbm`) that say what will
 happen — and the in-engine capability the `highs` community extension (LP / MIP)
 stops short of: **constraint programming, routing, and scheduling**.
 
+Explore the [executed job-shop scheduling notebook](notebooks/README.md) for workload bounds, a Gantt schedule, and a duration experiment.
+
 ## Quick start
 
 The worker isn't on PyPI; [uv](https://docs.astral.sh/uv/) runs it straight from a tagged release on GitHub. `uvx` builds an isolated environment on the first ATTACH and reuses it afterwards:
