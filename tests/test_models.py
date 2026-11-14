@@ -204,6 +204,22 @@ def test_min_cost_flow_known_cost() -> None:
     assert sum(r.cost) == 150
 
 
+def test_min_cost_flow_published_example_matches_its_description() -> None:
+    # The first published min_cost_flow example is described as "optimal total cost
+    # 150"; it once shipped a different instance (cost 160). Solve the literals the
+    # example SQL actually passes so the description can't drift from the result.
+    import re
+
+    from vgi_ortools.functions.flow_fn import _MCF_EXAMPLES
+
+    example = _MCF_EXAMPLES[0]
+    arcs_lit, supplies_lit = re.findall(r":= (\[\[.*?\]\])::BIGINT", example["sql"])
+    r = flow.min_cost_flow(json.loads(arcs_lit), json.loads(supplies_lit))
+    assert r.status == OPTIMAL
+    assert "total cost 150" in example["description"]
+    assert sum(r.cost) == 150
+
+
 # ---- packing -------------------------------------------------------------
 
 

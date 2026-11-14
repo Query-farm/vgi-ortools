@@ -80,17 +80,23 @@ LOAD vgi;
 -- no secrets needed (offline compute)
 ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.4.0 vgi-ortools');
 
+-- A table function cannot take a scalar subquery argument, so build each matrix
+-- into a session variable first and pass it with getvariable().
+
 -- 1) Linear assignment: 3 workers to 3 tasks, minimize cost
+SET VARIABLE cost = (SELECT array_agg([w, t, c]) FROM costs);   -- [worker, task, cost] triples
 SELECT worker, task, cost FROM opt.solve_assignment(
-  cost := (SELECT array_agg([w, t, c]) FROM costs),   -- [worker, task, cost] triples
+  cost := getvariable('cost'),
   maximize := false
 );
 
 -- 2) Capacitated VRP: 1 depot, 12 stops, 4 vehicles, cap 15, from a SQL distance matrix
+SET VARIABLE distance = (SELECT array_agg([from_node, to_node, meters]) FROM dist_edges);
+SET VARIABLE demand   = (SELECT array_agg([node, units])               FROM stop_demand);
 SELECT route_id, seq, node, arrival, load_0 AS load
 FROM opt.solve_vrp(
-  distance := (SELECT array_agg([from_node, to_node, meters]) FROM dist_edges),
-  demand   := (SELECT array_agg([node, units])               FROM stop_demand),
+  distance := getvariable('distance'),
+  demand   := getvariable('demand'),
   num_vehicles := 4,
   vehicle_capacity := 15,
   depot := 0,
@@ -101,15 +107,27 @@ FROM opt.solve_vrp(
 ORDER BY route_id, seq;
 
 -- 3) CP-SAT job-shop: minimize makespan over a tasks table, return start times
+SET VARIABLE tasks = (SELECT array_agg([job, task, machine, duration]) FROM jobshop_tasks);
 SELECT job, task, machine, start, "end"
 FROM opt.solve_jobshop(
-  tasks := (SELECT array_agg([job, task, machine, duration]) FROM jobshop_tasks),
+  tasks := getvariable('tasks'),
   time_limit_s := 30.0
 );
 
 -- 4) The general escape hatch: a hand-built CP-SAT model as JSON
 SELECT var, value, status, objective
 FROM opt.solve_cpsat(model := $${ ...JSON dialect, see below... }$$, time_limit_s := 5.0);
+
+-- 5) Combine solvers: which arcs are critical? For every arc that carries flow
+--    in the max-flow solution, re-solve without it (max_flow_value per row).
+--    Losing arc 2->3 drops the 0->3 max flow from 30 to 10.
+SET VARIABLE net = [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][];
+SELECT f."from", f."to", f.flow,
+       opt.max_flow_value(
+         list_filter(getvariable('net'), lambda a: NOT (a[1] = f."from" AND a[2] = f."to")),
+         0, 3) AS flow_without_arc
+FROM opt.max_flow(arcs := getvariable('net'), source := 0, sink := 3) AS f
+ORDER BY flow_without_arc, f."from", f."to";
 ```
 
 ### Passing matrices: `array_agg` LIST arguments
@@ -119,10 +137,10 @@ Every matrix / vector argument is a DuckDB `LIST` value built with
 All distances / costs / demands / durations are **integers** — OR-Tools is an
 integer engine (see *Integer scaling* below).
 
-> **DuckDB tip.** A table function cannot take a *scalar subquery* argument
-> directly, so if `cost := (SELECT array_agg(...) FROM t)` is rejected by the
-> binder, hoist it to a session variable first — the same idiom the other VGI
-> workers use:
+> **DuckDB tip.** A table function cannot take a *scalar subquery* argument —
+> `cost := (SELECT array_agg(...) FROM t)` fails with *Binder Error: Table
+> function cannot contain subqueries*. Hoist it to a session variable first —
+> the same idiom the other VGI workers use:
 >
 > ```sql
 > SET VARIABLE cost = (SELECT array_agg([w, t, c]) FROM costs);

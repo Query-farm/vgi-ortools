@@ -48,15 +48,40 @@ _MF_SCHEMA = pa.schema(
 
 _MCF_EXAMPLES = [
     {
-        "description": "Min-cost flow of 20 units from node 0 to node 4 (optimal total cost 150).",
+        "description": (
+            "Min-cost flow of 20 units out of node 0 to sinks 3 (5 units) and 4 (15 units) -- the "
+            "canonical OR-Tools instance, optimal total cost 150."
+        ),
         "sql": (
             'SELECT "from", "to", flow, cost FROM ortools.main.min_cost_flow('
-            "arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[2,3,15,1],[2,4,4,3],[3,4,20,2],"
-            "[4,2,5,3]]::BIGINT[][], "
-            'supplies := [[0,20],[4,-20]]::BIGINT[][]) ORDER BY "from", "to"'
+            "arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[1,4,10,6],[2,3,15,1],[2,4,4,3],"
+            "[3,4,20,2],[4,2,5,3]]::BIGINT[][], "
+            'supplies := [[0,20],[3,-5],[4,-15]]::BIGINT[][]) ORDER BY "from", "to"'
         ),
-    }
+    },
 ]
+
+# Composed: price a shipment with min_cost_flow, then size the network's spare
+# capacity with max_flow_value over the same arcs (capacity columns only).
+MIN_COST_FLOW_HEADROOM_EXAMPLE = {
+    "description": (
+        "Ship 12 units from node 0 to node 3 at minimum cost (68), and compare against the "
+        "network's maximum 0->3 throughput from max_flow_value over the same arcs' capacities "
+        "(17), leaving 5 units of headroom."
+    ),
+    "sql": (
+        'SELECT sum(flow) FILTER (WHERE "from" = 0) AS shipped, sum(cost) AS total_cost, '
+        "ortools.main.max_flow_value(list_transform("
+        "[[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], lambda a: a[1:3]), 0, 3) "
+        "AS max_shippable, max_shippable - shipped AS headroom "
+        "FROM ortools.main.min_cost_flow("
+        "arcs := [[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], "
+        "supplies := [[0,12],[3,-12]]::BIGINT[][]) "
+        "ORDER BY total_cost"
+    ),
+}
+_MCF_EXAMPLES.append(MIN_COST_FLOW_HEADROOM_EXAMPLE)
+
 _MF_EXAMPLES = [
     {
         "description": "Max flow from node 0 to node 3 (value 30).",
@@ -64,8 +89,30 @@ _MF_EXAMPLES = [
             'SELECT sum(flow) FILTER (WHERE "from" = 0) AS out_of_source FROM ortools.main.max_flow('
             "arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3)"
         ),
-    }
+    },
 ]
+
+# Composed: an N-1 / arc-criticality check -- for every arc that carries flow in
+# the max_flow solution, re-solve with that arc removed via max_flow_value.
+MAX_FLOW_ARC_CRITICALITY_EXAMPLE = {
+    "description": (
+        "Arc criticality: for each arc carrying flow in the 0->3 max-flow solution, re-solve with "
+        "that arc removed (max_flow_value) and report the throughput lost. Losing arc 2->3 drops "
+        "the max flow from 30 to 10; each of the other flow-carrying arcs costs 10."
+    ),
+    "sql": (
+        'SELECT f."from", f."to", f.flow, '
+        "ortools.main.max_flow_value(list_filter("
+        "[[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], "
+        'lambda a: NOT (a[1] = f."from" AND a[2] = f."to")), 0, 3) AS flow_without_arc, '
+        "ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) "
+        "- flow_without_arc AS flow_lost "
+        "FROM ortools.main.max_flow("
+        "arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3) AS f "
+        'ORDER BY flow_lost DESC, f."from", f."to"'
+    ),
+}
+_MF_EXAMPLES.append(MAX_FLOW_ARC_CRITICALITY_EXAMPLE)
 
 
 @dataclass(slots=True, frozen=True)
@@ -142,7 +189,7 @@ class MinCostFlow(TableFunctionGenerator[MinCostFlowArgs]):
             source_url=_MCF_URL,
             executable_examples=_MCF_EXAMPLES,
         )
-        examples = [FunctionExample(sql=_MCF_EXAMPLES[0]["sql"], description="Min-cost flow, total cost 150.")]
+        examples = [FunctionExample(sql=e["sql"], description=e["description"]) for e in _MCF_EXAMPLES]
 
     @classmethod
     def cardinality(cls, params: BindParams[MinCostFlowArgs]) -> TableCardinality:
@@ -235,7 +282,7 @@ class MaxFlow(TableFunctionGenerator[MaxFlowArgs]):
             source_url=_MF_URL,
             executable_examples=_MF_EXAMPLES,
         )
-        examples = [FunctionExample(sql=_MF_EXAMPLES[0]["sql"], description="Max flow value 30.")]
+        examples = [FunctionExample(sql=e["sql"], description=e["description"]) for e in _MF_EXAMPLES]
 
     @classmethod
     def cardinality(cls, params: BindParams[MaxFlowArgs]) -> TableCardinality:

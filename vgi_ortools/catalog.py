@@ -17,6 +17,7 @@ from vgi.catalog import Catalog, ConstraintInfo, Schema, Table, constraint_recor
 
 from . import DIALECT_VERSION, __version__
 from .functions import ALL_FUNCTIONS
+from .functions.flow_fn import MAX_FLOW_ARC_CRITICALITY_EXAMPLE, MIN_COST_FLOW_HEADROOM_EXAMPLE
 from .functions.info_fn import INFO_SCHEMA, STATS_SCHEMA, LastSolveStats, SolverInfo
 
 SOURCE_URL = "https://github.com/Query-farm/vgi-ortools"
@@ -147,6 +148,8 @@ _SCHEMA_EXAMPLE_QUERIES = json.dumps(
             "description": "List the bundled OR-Tools / solver component versions.",
             "sql": "SELECT component, version FROM ortools.main.solver_info ORDER BY component",
         },
+        MAX_FLOW_ARC_CRITICALITY_EXAMPLE,
+        MIN_COST_FLOW_HEADROOM_EXAMPLE,
     ]
 )
 
@@ -262,6 +265,26 @@ _AGENT_TEST_TASKS = [
         "prompt": (
             "Pack items of sizes [3,5,2,7,1,4] into bins of capacity 10. Using the per-bin rollup, how "
             "many bins end up holding at least one item? Return a single number."
+        ),
+    },
+    {
+        "name": "max_flow_most_critical_arc",
+        "prompt": (
+            "A directed network has [from, to, capacity] arcs "
+            "[[0,1,8],[0,2,6],[1,2,4],[1,3,5],[2,3,9],[2,4,3],[3,5,10],[4,5,6]]. Find the single arc "
+            "whose removal lowers the maximum flow from node 0 to node 5 the most. Return one row with "
+            "three integer columns: the arc's from node, its to node, and the maximum 0-to-5 flow that "
+            "remains once that arc is removed."
+        ),
+    },
+    {
+        "name": "min_cost_flow_spare_capacity",
+        "prompt": (
+            "A network has [from, to, capacity, unit_cost] arcs "
+            "[[0,1,7,3],[0,2,5,1],[1,3,6,2],[2,1,3,1],[2,3,4,4],[3,4,9,1],[1,4,2,6]]. Ship 9 units from "
+            "node 0 to node 4 at minimum total cost. Return one row with two integer columns: that "
+            "minimum total cost, and how many more units beyond the 9 the network could still carry "
+            "from node 0 to node 4 (its maximum 0-to-4 flow minus 9)."
         ),
     },
     {

@@ -1,0 +1,46 @@
+# name: test/sql/composed_examples.test
+# description: The published composed examples (two worker objects in one query) return the rows their descriptions claim
+# group: [vgi_ortools]
+
+require-env VGI_ORTOOLS_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION '{VGI_ORTOOLS_WORKER}');
+
+# ---- max_flow + max_flow_value: arc criticality (MAX_FLOW_ARC_CRITICALITY_EXAMPLE) ----
+query IIIII
+SELECT f."from", f."to", f.flow, ortools.main.max_flow_value(list_filter([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], lambda a: NOT (a[1] = f."from" AND a[2] = f."to")), 0, 3) AS flow_without_arc, ortools.main.max_flow_value([[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], 0, 3) - flow_without_arc AS flow_lost FROM ortools.main.max_flow(arcs := [[0,1,20],[0,2,30],[1,2,10],[1,3,10],[2,3,20]]::BIGINT[][], source := 0, sink := 3) AS f ORDER BY flow_lost DESC, f."from", f."to"
+----
+2	3	20	10	20
+0	1	10	20	10
+0	2	20	20	10
+1	3	10	20	10
+
+# ---- min_cost_flow + max_flow_value: shipment cost and headroom (MIN_COST_FLOW_HEADROOM_EXAMPLE) ----
+query IIII
+SELECT sum(flow) FILTER (WHERE "from" = 0) AS shipped, sum(cost) AS total_cost, ortools.main.max_flow_value(list_transform([[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], lambda a: a[1:3]), 0, 3) AS max_shippable, max_shippable - shipped AS headroom FROM ortools.main.min_cost_flow(arcs := [[0,1,10,2],[0,2,8,5],[1,2,6,1],[1,3,5,4],[2,3,12,2]]::BIGINT[][], supplies := [[0,12],[3,-12]]::BIGINT[][]) ORDER BY total_cost
+----
+12	68	17	5
+
+# ---- the canonical min_cost_flow example (described as total cost 150) ----
+query I
+SELECT sum(cost) FROM ortools.main.min_cost_flow(arcs := [[0,1,15,4],[0,2,8,4],[1,2,20,2],[1,3,4,2],[1,4,10,6],[2,3,15,1],[2,4,4,3],[3,4,20,2],[4,2,5,3]]::BIGINT[][], supplies := [[0,20],[3,-5],[4,-15]]::BIGINT[][])
+----
+150
+
+# ---- private graders for the composed agent tasks ----
+query III
+SELECT a[1] AS from_node, a[2] AS to_node, ortools.main.max_flow_value(list_filter([[0,1,8],[0,2,6],[1,2,4],[1,3,5],[2,3,9],[2,4,3],[3,5,10],[4,5,6]]::BIGINT[][], lambda x: x <> a), 0, 5) AS remaining_flow FROM unnest([[0,1,8],[0,2,6],[1,2,4],[1,3,5],[2,3,9],[2,4,3],[3,5,10],[4,5,6]]::BIGINT[][]) AS u(a) ORDER BY remaining_flow, from_node, to_node LIMIT 1
+----
+3	5	3
+
+query II
+SELECT sum(cost)::BIGINT AS total_cost, ortools.main.max_flow_value([[0,1,7],[0,2,5],[1,3,6],[2,1,3],[2,3,4],[3,4,9],[1,4,2]]::BIGINT[][], 0, 4) - 9 AS spare_units FROM ortools.main.min_cost_flow(arcs := [[0,1,7,3],[0,2,5,1],[1,3,6,2],[2,1,3,1],[2,3,4,4],[3,4,9,1],[1,4,2,6]]::BIGINT[][], supplies := [[0,9],[4,-9]]::BIGINT[][])
+----
+52	2
+
+statement ok
+DETACH ortools;
