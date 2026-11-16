@@ -55,7 +55,7 @@ class Limits:
                 return default
             try:
                 return float(raw)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return default
 
         return cls(

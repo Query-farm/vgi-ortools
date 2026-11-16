@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.13"]
+        python-version: ["3.14"]
 
     steps:
       - uses: actions/checkout@v6
@@ -81,7 +81,7 @@ jobs:
           - { os: ubuntu-latest, asset: haybarn_unittest-linux-amd64.zip }
     runs-on: ${{ matrix.os }}
     env:
-      UV_PYTHON: "3.13"
+      UV_PYTHON: "3.14"
     defaults:
       run:
         shell: bash
@@ -91,14 +91,14 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0
 
-      - name: Set up Python 3.13
-        run: uv python install 3.13
+      - name: Set up Python 3.14
+        run: uv python install 3.14
 
       - name: Install the worker (from the lockfile)
         # waitress (needed to serve `--http`) is pulled in transitively by the
         # main `vgi-python[http]` dependency, so a plain `--extra dev` sync
         # already installs it. The `dev` extra brings pyarrow (the worker imports it).
-        run: uv sync --frozen --extra dev --python 3.13
+        run: uv sync --frozen --extra dev --python 3.14
 
       - name: Download haybarn-unittest
         run: |
@@ -127,18 +127,18 @@ jobs:
     name: Metadata quality (vgi-lint)
     runs-on: ubuntu-latest
     env:
-      UV_PYTHON: "3.13"
+      UV_PYTHON: "3.14"
     steps:
       - uses: actions/checkout@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0
 
-      - name: Set up Python 3.13
-        run: uv python install 3.13
+      - name: Set up Python 3.14
+        run: uv python install 3.14
 
       - name: Install the worker
-        run: uv sync --extra dev --python 3.13
+        run: uv sync --extra dev --python 3.14
 
       - name: vgi-lint
         uses: Query-farm/vgi-lint-check@v2
@@ -150,7 +150,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     env:
-      UV_PYTHON: "3.13"
+      UV_PYTHON: "3.14"
     steps:
       - uses: actions/checkout@v6
 
@@ -158,7 +158,7 @@ jobs:
         uses: astral-sh/setup-uv@v8.2.0
 
       - name: Install dependencies
-        run: uv sync --extra dev --python 3.13
+        run: uv sync --extra dev --python 3.14
 
       - name: Check formatting
         run: uv run --no-sync ruff format --check .
