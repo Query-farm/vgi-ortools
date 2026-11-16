@@ -62,7 +62,7 @@ jobs:
       version_check_cmd: "ci/check-version.sh"
       # Validate the built image's two transports against the signed vgi
       # extension. The worker logic over stdio/http is already exercised every
-      # run by the gating `ci` job (all test/sql/*, three transports, two OSes),
+      # run by the gating `ci` job (all test/sql/*, over stdio, launch and http),
       # so here we just prove the IMAGE speaks the protocol in both modes:
       #   - stdio: cold-boot one container per ATTACH and run the suite;
       #   - HTTP: run the full suite against a SINGLE warm container.
@@ -87,8 +87,8 @@ jobs:
         echo "::endgroup::"
 
         echo "::group::stdio entrypoint smoke (cold container per ATTACH)"
-        TRANSPORT=subprocess \
-          VGI_ORTOOLS_WORKER="docker run -i --rm $CITEST_IMAGE stdio" \
+        TRANSPORT=stdio \
+          WORKER="docker run -i --rm $CITEST_IMAGE stdio" \
           ci/run-integration.sh
         echo "::endgroup::"
 
@@ -96,5 +96,5 @@ jobs:
         CID=$(docker run -d -p 18000:8000 "$CITEST_IMAGE")
         trap 'docker rm -f "$CID" >/dev/null 2>&1 || true' EXIT
         for _ in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:18000/health && break; sleep 1; done
-        TRANSPORT=http VGI_ORTOOLS_WORKER="http://localhost:18000" ci/run-integration.sh
+        TRANSPORT=http WORKER_URL="http://localhost:18000" ci/run-integration.sh
         echo "::endgroup::"

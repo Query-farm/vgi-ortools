@@ -37,7 +37,7 @@ vgi_ortools/
     _meta.py         #   shared metadata tag builder + Arrow LIST types
 tests/               # pure golden tests (test_models) + RPC end-to-end (test_client)
 test/sql/            # haybarn sqllogictest E2E
-ci/                  # run-integration.sh + preprocess-require.awk (transport matrix)
+ci/                  # run-integration.sh (starter-standard SQL runner, stdio/launch/http)
 ```
 
 ## The model-input design (load-bearing)
@@ -57,7 +57,7 @@ passed as **scalar arguments**, exactly as the spec's SQL surface documents:
   proven "buffered config + JSON" idiom from `vgi-match`.
 
 This round-trips through the real vgi community extension (the haybarn E2E asserts
-it) and over subprocess / unix / http transports.
+it) and over stdio / launch / http transports.
 
 ### The empty-vs-infeasible contract
 

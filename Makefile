@@ -5,44 +5,43 @@
 #   make test-unit     # pytest only
 #   make test-sql      # DuckDB sqllogictest .test files via haybarn-unittest
 #   make lint          # ruff + mypy + pydoclint
-#
-# test-sql is self-contained: it points VGI_ORTOOLS_WORKER at the worker run as a
-# uv stdio subprocess (exactly how DuckDB drives it after ATTACH) and runs the
-# files under test/sql/. haybarn-unittest is a uv tool:
-#   uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'   # ~/.local/bin/haybarn-unittest
-# haybarn 2.0 is required: its community `vgi` extension is the one that speaks the
-# worker's VGI protocol (vgi.v3 / 3.3). --keep-home lets the runner see the
-# extensions installed under the real $HOME (haybarn-unittest 2.0 isolates it).
 
-# Worker command DuckDB uses for ATTACH (overridable). Use the installed console
-# script from the project venv (exactly what CI's VGI_ORTOOLS_WORKER points at),
-# NOT `uv run ortools_worker.py` — a `uv run` PEP-723 script env caches its own
-# copy of the SDK and can drift from the venv the rest of the gates use.
-WORKER_STDIO    ?= $(CURDIR)/.venv/bin/vgi-ortools
+# SQL tests: ci/run-integration.sh (adapted from the vgi-starter template) runs
+# test/sql/*.test through the published haybarn-unittest with the signed community
+# `vgi` extension, over stdio, launch (AF_UNIX, pooled) and http. CI runs the same
+# script per transport. `make test-sql TRANSPORTS=launch` runs one.
+HAYBARN_VERSION  ?= 2.0.0rc11
+WORKER           ?= $(CURDIR)/.venv/bin/vgi-ortools
+TOOLS            := $(CURDIR)/.tools
+HAYBARN_UNITTEST := $(TOOLS)/bin/haybarn-unittest
+TRANSPORTS       ?= stdio launch http
 
-# haybarn-unittest lives in the uv tools bin; keep it on PATH.
-HAYBARN_BIN     ?= $(HOME)/.local/bin
-TEST_DIR         = .
-TEST_PATTERN     = test/sql/*
+.PHONY: build tools check test test-unit test-sql lint format
 
-.PHONY: test test-unit test-sql lint format
+build: ## Install the worker (with every extra) into .venv
+	uv sync --locked --all-extras
+
+tools: ## Install the pinned SQL test runner into .tools
+	@test -x $(HAYBARN_UNITTEST) || { uv venv -q $(TOOLS) && uv pip install -q -p $(TOOLS) haybarn-unittest==$(HAYBARN_VERSION); }
+
+test-sql: build tools ## SQL tests through DuckDB over each of $(TRANSPORTS)
+	@for t in $(TRANSPORTS); do \
+		WORKER="$(WORKER)" HAYBARN_UNITTEST="$(HAYBARN_UNITTEST)" TRANSPORT=$$t ci/run-integration.sh || exit 1; \
+	done
 
 test: test-unit test-sql
 
 test-unit:
 	uv run --no-sync pytest -q
 
-test-sql:
-	PATH="$(HAYBARN_BIN):$$PATH" \
-		VGI_ORTOOLS_WORKER="$(WORKER_STDIO)" \
-		haybarn-unittest --keep-home --test-dir "$(TEST_DIR)" "$(TEST_PATTERN)"
-
 lint:
 	uv run --no-sync ruff format --check .
 	uv run --no-sync ruff check .
 	uv run --no-sync mypy vgi_ortools/
-	uv run --no-sync pydoclint --config pyproject.toml vgi_ortools/
+	uvx pydoclint --config pyproject.toml vgi_ortools/
 
 format:
 	uv run --no-sync ruff format .
 	uv run --no-sync ruff check --fix .
+
+check: lint test ## Everything CI runs
