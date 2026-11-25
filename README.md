@@ -25,11 +25,13 @@ Explore the [executed optimization notebooks](notebooks/README.md) for job-shop 
 
 The worker isn't on PyPI; [uv](https://docs.astral.sh/uv/) runs it straight from a tagged release on GitHub. `uvx` builds an isolated environment on the first ATTACH and reuses it afterwards:
 
+vgi-ortools 0.5.0 speaks VGI protocol 3.4, so it needs Haybarn 2.0.1 or newer (Haybarn 2.0.0 loads a 3.3 `vgi` extension that cannot attach it).
+
 ```sql
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.4.1 vgi-ortools');
+ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.5.0 vgi-ortools');
 
 -- Least-cost assignment of three workers to three tasks (returns each worker's chosen
 -- task and its cost).
@@ -39,14 +41,14 @@ SELECT worker, task, cost FROM ortools.main.solve_assignment(cost := [[0,0,90],[
 SELECT seq, node, arrival FROM ortools.main.solve_tsp(distance := [[0,2,9,10,1],[1,0,6,4,8],[15,7,0,8,3],[6,3,12,0,5],[9,8,4,7,0]]::BIGINT[][], start := 0) ORDER BY seq;
 ```
 
-Change `@v0.4.1` to move to a newer release.
+Change `@v0.5.0` to move to a newer release.
 
 ### Other ways to run it
 
 - **Docker** (the image bundles the worker and its dependencies):
 
   ```sql
-  ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-ortools:0.4.1');
+  ATTACH 'ortools' AS ortools (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-ortools:0.5.0');
   ```
 
 - **From a local checkout** (`git clone https://github.com/Query-farm/vgi-ortools`), point `LOCATION` at `uv run --project /path/to/vgi-ortools vgi-ortools`.
@@ -78,7 +80,7 @@ the box.
 INSTALL vgi FROM community;
 LOAD vgi;
 -- no secrets needed (offline compute)
-ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.4.1 vgi-ortools');
+ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.5.0 vgi-ortools');
 
 -- A table function cannot take a scalar subquery argument, so build each matrix
 -- into a session variable first and pass it with getvariable().
@@ -298,7 +300,7 @@ doubles.)
 - Before building a model the worker guards problem size: `max_nodes` (routing,
   2000), `max_vars` / `max_constraints` (CP-SAT, 100k / 200k), `max_arcs`
   (flow). Exceeding a guard is a clean error naming the limit, not an OOM. Raise
-  any of them per ATTACH, e.g. `ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.4.1 vgi-ortools', max_nodes '5000')`.
+  any of them per ATTACH, e.g. `ATTACH 'ortools' AS opt (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-ortools@v0.5.0 vgi-ortools', max_nodes '5000')`.
 - **Determinism.** CP-SAT runs single-threaded by default (`num_workers := 0`)
   with a fixed `random_seed`, so the objective *and* the assignment are
   reproducible. Pass `num_workers := 8` to opt into parallel search (faster, but
